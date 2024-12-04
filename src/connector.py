@@ -61,20 +61,19 @@ class DBConnector:
         self.verbose = verbose
         self.table_columns: dict[str, TableColumns] = {}
 
+    def get_table_columns(self) -> TableColumns:
+        return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
 
-    def get_table_columns(self, table: str) -> TableColumns:
-        return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{table}'").fetchall() }
-
-    def cache_table_columns(self, table: str):
+    def cache_table_columns(self):
         """Caches table columns from SQL database
         """
-        self.table_columns['table'] = self.get_table_columns(table)
+        self.table_columns['table'] = self.get_table_columns(self.table)
 
-    def has_column(self, table: str, column: str) -> bool:
-        return column in self.table_columns[table]
+    def has_column(self, column: str) -> bool:
+        return column in self.table_columns[self.table]
 
-    def add_column(self, table: str, column: str, column_type: str):
-        self.execute(f'alter table [{table}] add [{column}] {column_type} NULL')
+    def add_column(self, column: str, column_type: str):
+        self.execute(f'alter table [{self.table}] add [{column}] {column_type} NULL')
         self.commit()
 
     def vp(self, content: str):
@@ -101,13 +100,13 @@ class DBConnector:
         """
         return f"Driver={driver};Server={server_ip};Database={database};UID={user_id};PWD={password};Trusted_Connection={'yes' if trusted else 'no'};"
 
-    def has_table(self, table: str) -> bool:
+    def has_table(self) -> bool:
         """Checks if given `table` exists in the connected database
 
         :param str table: table name
         :return bool: True if table exists in database, false otherwise
         """
-        return bool(self._con.cursor().tables(table=table, tableType='TABLE').fetchone())
+        return bool(self._con.cursor().tables(table=self.table, tableType='TABLE').fetchone())
 
     def reconnect(self):
         self._con = db.connect(self._connection_string)
