@@ -1,5 +1,38 @@
 import pyodbc as db
 from icecream import ic
+from dataclasses import dataclass
+
+@dataclass
+class TypeMapper:
+    """TypeMapper class
+
+    Contains mapping from python/pandas types to SQL types.
+
+    Priority chain: `direct -> prefix -> suffix -> typed`
+
+    Will use first dictionary where it finds the given value
+
+    :param dict[str, str] direct: direct mapping, will map from column name (dict key) to SQL type (dict value)
+    :param dict[str, str] prefix: will map from column name that has given prefix (dict key) to SQL type (dict value)
+    :param dict[str, str] suffix: will map from column name that has given suffix (dict key) to SQL type (dict value)
+    :param dict[str, str] typed: will map from pandas type (dict key) to SQL type (dict value)
+    """
+    direct: dict[str, str]
+    prefix: dict[str, str]
+    suffix: dict[str, str]
+    typed: dict[str, str]
+
+    def map(self, column_name: str, column_type: str) -> str:
+        if column_name in self.direct:
+            return self.direct[column_name]
+        for p in self.prefix:
+            if column_name[:len(p)] == p:
+                return self.prefix[p]
+        for s in self.suffix:
+            if column_name[-len(s):] == s:
+                return self.suffix[s]
+        if column_type in self.typed:
+            return self.typed[column_type]
 
 TableColumns = set[str]
 
@@ -118,3 +151,4 @@ class DBConnector:
             except:
                 self.vp(f"Couldn't execute query: {sql_query}")
                 return
+
