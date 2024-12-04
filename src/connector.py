@@ -4,6 +4,14 @@ from icecream import ic
 from dataclasses import dataclass
 
 @dataclass
+class TypedColumn:
+    column: str
+    value: any
+    type: str
+
+TableTypeList = dict[str, TypedColumn]
+
+@dataclass
 class TypeMapper:
     """TypeMapper class
 
@@ -38,7 +46,7 @@ class TypeMapper:
 TableColumns = set[str]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, verbose = False):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper, verbose = False):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -56,6 +64,7 @@ class DBConnector:
         :param str table: working table name
         :param bool verbose: whether to verbose print, defaults to True
         """
+        self.type_mapper = type_mapper
         self.table = table
         self._connection_string = connection_string
         self._con = db.connect(connection_string)
