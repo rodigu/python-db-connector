@@ -172,4 +172,5 @@ class DBConnector:
         """
         df = pd.json_normalize(obj_dict)
         pd_types = df.dtypes.to_dict()
-        return [{'column': key, 'value': val, 'type': self.type_mapper.map(key, str(pd_types[key]))} for key, val in df.iloc[0].to_dict().items() if val is not None]
+
+        return [TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if val is not None]
