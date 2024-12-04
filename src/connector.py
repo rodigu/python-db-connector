@@ -225,3 +225,10 @@ class DBConnector:
         for v in flattened.values():
             v.pop(choose_key(v))
         return flattened
+
+    def add_columns(self, type_list: TableTypeList):
+        for column, t in type_list.items():
+            if not self.has_column(column):
+                self.vp(f'Column {column} ({t.type}) does not exist, adding it now.')
+                self.add_column(column, t.type)
+                self.cache_table_columns()
