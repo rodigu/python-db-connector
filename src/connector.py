@@ -232,3 +232,26 @@ class DBConnector:
                 self.vp(f'Column {column} ({t.type}) does not exist, adding it now.')
                 self.add_column(column, t.type)
                 self.cache_table_columns()
+
+    @staticmethod
+    def parse_value(data: TypedColumn) -> tuple[str, str]:
+        """Converts python values into valid SQL values.
+
+        :param TypedColumn data: original python data
+        :return tuple[str, str]: tuple of column name and SQL-type
+        """
+
+        if (data.value is None) or (type(data.value)==str and len(data.value)==0):
+            return (data.column, 'NULL')
+        if data.type == 'bit':
+            return (data.column, str(int(data.value)))
+        if 'int' in data.type:
+            return (data.column, f'{data.value}')
+        return (data.column, f"N'{str(data.value).replace("'", '"')}'")
+
+    def sql_update_str(self, type_list: TableTypeList, id: str) -> str:
+        parsed_values: dict[str, str] = dict(map(DBConnector.parse_value, type_list))
+        return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where id={id if type(id)==int else f"'{id}'"}"
+
+    def sql_insertion_str(self, columns: str, values: str) -> str:
+        return f'insert into {self.table} ({columns}) values ({values})'
