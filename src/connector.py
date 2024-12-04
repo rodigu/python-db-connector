@@ -54,6 +54,27 @@ class DBConnector:
         """
         return bool(self._con.cursor().tables(table=table, tableType='TABLE').fetchone())
 
+    def reconnect(self):
+        self._con = db.connect(self._connection_string)
+
+    def commit(self, reconnect_attempts=1):
+        """Commits executed queries to database.
+
+        :param int reconnect_attempts: number of times to retry connecting to the database if `commit` throws an error, defaults to 1
+        """
+        try:
+            self._con.commit()
+        except db.Error as pe:
+            self.vp(f"Error: {pe}")
+            if reconnect_attempts == 0:
+                return
+            self.vp(f'Retrying commit ({reconnect_attempts} attempts left)')
+            try:
+                self.reconnect()
+                self.commit(reconnect_attempts - 1)
+            except:
+                self.vp("Couldn't reconnect")
+
     def execute(self, sql_query: str, tries=10, is_first=True):
         """Executes the given SQL query.
 
