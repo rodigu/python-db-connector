@@ -32,7 +32,17 @@ class DBConnector:
             ic(content)
 
     @staticmethod
-    def create_connection_string(driver: str, server_ip: str, database: str, user_id: str, password: str, trusted: bool) -> str:
+    def create_connection_string(driver: str, server_ip: str, database: str, user_id: str, password: str, trusted=False) -> str:
+        """Creates connection string using the given auth values, see the [`pyodbc`](https://github.com/mkleehammer/pyodbc/wiki/Getting-started) docs for more info.
+
+        :param str driver: driver name, e.g. {SQL Server}
+        :param str server_ip: server ip number string (should incluede periods)
+        :param str database: database name to connect to
+        :param str user_id: user id
+        :param str password: user password
+        :param bool trusted: if the connection is trusted, defaults to False
+        :return str: pyodbc-valid connection string
+        """
         return f"Driver={driver};Server={server_ip};Database={database};UID={user_id};PWD={password};Trusted_Connection={'yes' if trusted else 'no'};"
 
     def has_table(self, table: str) -> bool:
