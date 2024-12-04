@@ -1,6 +1,8 @@
 import pyodbc as db
 from icecream import ic
 
+TableColumns = set[str]
+
 class DBConnector:
     def __init__(self, connection_string: str, verbose = False):
         """Creates connection to database
@@ -21,6 +23,23 @@ class DBConnector:
         self._connection_string = connection_string
         self._con = db.connect(connection_string)
         self.verbose = verbose
+        self.table_columns: dict[str, TableColumns] = {}
+
+
+    def get_table_columns(self, table: str) -> TableColumns:
+        return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{table}'").fetchall() }
+
+    def cache_table_columns(self, table: str):
+        """Caches table columns from SQL database
+        """
+        self.table_columns['table'] = self.get_table_columns(table)
+
+    def has_column(self, table: str, column: str) -> bool:
+        return column in self.table_columns[table]
+
+    def add_column(self, table: str, column: str, column_type: str):
+        self.execute(f'alter table [{table}] add [{column}] {column_type} NULL')
+        self.commit()
 
     def vp(self, content: str):
         """Verbose prints.
