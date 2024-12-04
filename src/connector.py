@@ -1,3 +1,4 @@
+import pandas as pd
 import pyodbc as db
 from icecream import ic
 from dataclasses import dataclass
