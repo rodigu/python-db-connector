@@ -18,6 +18,7 @@ class DBConnector:
 
         :param str connection_string: connection string
         """
+        self._connection_string = connection_string
         self._con = db.connect(connection_string)
         self.verbose = verbose
 
