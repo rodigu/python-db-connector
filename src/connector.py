@@ -22,6 +22,12 @@ class DBConnector:
         self.verbose = verbose
 
     def vp(self, content: str):
+        """Verbose prints.
+
+        Passes `content` to icecream's `ic` if `self.verbose` is set to `True`
+
+        :param str content: string to be sent to `ic`
+        """
         if self.verbose:
             ic(content)
 
