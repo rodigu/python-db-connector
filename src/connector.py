@@ -54,7 +54,7 @@ class DBConnector:
         ```
         Driver={SQL Server};
         Server=SERVER_IP;
-        Database=ZENDESK;
+        Database=DB_NAME;
         UID=USER_ID;
         PWD=PASSWORD;
         Trusted_Connection=no;
