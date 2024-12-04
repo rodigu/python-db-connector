@@ -46,9 +46,20 @@ class DBConnector:
         return f"Driver={driver};Server={server_ip};Database={database};UID={user_id};PWD={password};Trusted_Connection={'yes' if trusted else 'no'};"
 
     def has_table(self, table: str) -> bool:
+        """Checks if given `table` exists in the connected database
+
+        :param str table: table name
+        :return bool: True if table exists in database, false otherwise
+        """
         return bool(self._con.cursor().tables(table=table, tableType='TABLE').fetchone())
 
     def execute(self, sql_query: str, tries=10, is_first=True):
+        """Executes the given SQL query.
+
+        :param str sql_query: SQL query string
+        :param int tries: number of times to try executing the query before giving up, defaults to 10
+        :param bool is_first: used to track number of tries, defaults to True
+        """
         if tries==0:
             self.vp(f"Couldn't execute query: {sql_query}")
             return
