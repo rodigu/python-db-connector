@@ -174,3 +174,54 @@ class DBConnector:
         pd_types = df.dtypes.to_dict()
 
         return [TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if val is not None]
+
+    @staticmethod
+    def flatten_dict(d: dict, key: str|list[str] = []) -> dict:
+        """Recusively flattens a dict.
+        Lists with dictionaries are turned into dicts with keys using `key`.
+
+        If `key` is a list, it attempts to use each item from the list in order as a key.
+
+        :param dict d: dictionary to be flattened
+        :param str | list[str] key: key or keys to be used in keying lists of dictionaries
+        :return dict: flatenned dictionary
+
+        >>> DBConnector.flatten_dict({'a': 1, 'b': 2})
+        >>> DBConnector.flatten_dict({'a': 1, 'b': [{'k': 2}]})
+        >>> DBConnector.flatten_dict({'a': 1, 'b': [{'k': 2}, {'k': 1}]}, key='k')
+        """
+        return { k: DBConnector.flatten_dict_list(v, key) for k, v in d.items() }
+
+    @staticmethod
+    def flatten_dict_list(dlist: list[dict], key: str|list[str]) -> dict:
+        """Flattens list of dictionaries recursively
+
+        Expects list of dicts to be uniform in terms of keys.
+
+        If no keys are found in the first dictionary of the list, it returns the list in string form.
+
+        :param list[dict] dlist: list of dictionaries
+        :param str | list[str] key: key(s) to be extrated from the dictionaries and turned into dict keys
+        :return dict: flattened dictionary
+        """
+        wrong_type = lambda x: type(x)!=list and type(x)!=dict
+        if wrong_type(dlist) or (type(dlist)==list and len(dlist) > 0 and wrong_type(dlist[0])):
+            return dlist
+
+        if type(dlist)==dict:
+            return DBConnector.flatten_dict(dlist, key)
+
+        no_keys_in_dict = (choose_key(dlist[0]) not in dlist[0] and choose_key(dlist[0]) == None)
+
+        if no_keys_in_dict:
+            return str(dlist)
+
+        def choose_key(d: dict) -> str:
+            if type(key)==str: return key
+            for k in key:
+                if k in d: return k
+            return None
+        flattened = { d[choose_key(d)]: DBConnector.flatten_dict_list(d, key) for d in dlist }
+        for v in flattened.values():
+            v.pop(choose_key(v))
+        return flattened
