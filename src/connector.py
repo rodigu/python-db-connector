@@ -37,7 +37,7 @@ class TypeMapper:
 TableColumns = set[str]
 
 class DBConnector:
-    def __init__(self, connection_string: str, verbose = False):
+    def __init__(self, connection_string: str, table: str, verbose = False):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -52,7 +52,10 @@ class DBConnector:
         ```
 
         :param str connection_string: connection string
+        :param str table: working table name
+        :param bool verbose: whether to verbose print, defaults to True
         """
+        self.table = table
         self._connection_string = connection_string
         self._con = db.connect(connection_string)
         self.verbose = verbose
