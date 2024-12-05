@@ -339,7 +339,7 @@ class DBConnector:
         """
         import json
         with open(json_fname) as f:
-            data = json.read(f)
+            data = json.load(f)
         connection_string = DBConnector.create_connection_string(**data)
         return DBConnector(connection_string, table, **args)
 
