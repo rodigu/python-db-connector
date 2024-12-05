@@ -228,6 +228,9 @@ class DBConnector:
         :param list[dict] dlist: list of dictionaries
         :param str | list[str] key: key(s) to be extrated from the dictionaries and turned into dict keys
         :return: flattened dictionary or value
+
+        >>> DBConnector.flatten_dict_list([{'k': 2, 'val': 0}, {'k': 1, 'val': 2}], key='k')
+        {2: {'val': 0}, 1: {'val': 2}}
         """
         wrong_type = lambda x: type(x)!=list and type(x)!=dict
         if wrong_type(dlist) or (type(dlist)==list and len(dlist) > 0 and wrong_type(dlist[0])):
