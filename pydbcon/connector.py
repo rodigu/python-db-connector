@@ -272,6 +272,18 @@ class DBConnector:
 
         :param TypedColumn data: original python data
         :return tuple[str, str]: tuple of column name and SQL-type
+
+        >>> DBConnector.parse_value(TypedColumn('none_column', None, any))
+        ('none_column', 'NULL')
+        >>> DBConnector.parse_value(TypedColumn('empty_string', '', str))
+        ('empty_string', 'NULL')
+        >>> DBConnector.parse_value(TypedColumn('bool_column', True, 'bit'))
+        ('bool_column', '1')
+        >>> DBConnector.parse_value(TypedColumn('int_column', 10, 'int'))
+        ('int_column', '10')
+        >>> DBConnector.parse_value(TypedColumn('other_column', "text string", 'varchar(max)'))
+        ('other_column', "N'text string'")
+
         """
 
         if (data.value is None) or (type(data.value)==str and len(data.value)==0):
