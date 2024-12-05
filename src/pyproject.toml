@@ -1,0 +1,18 @@
+[project]
+name = "pydbcon"
+version = "0.1.1"
+authors = [
+  { name="Rodrigo Morais", email="rodrigohmorais@proton.me" },
+]
+description = "Simple Python DB connection to easily append Python dictionaries to SQL databases."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/rodigu/python-db-connector"
+Issues = "https://github.com/rodigu/python-db-connector/issues"
