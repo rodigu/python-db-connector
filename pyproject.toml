@@ -1,6 +1,11 @@
 [project]
 name = "pydbcon"
 version = "0.1.4"
+dependencies = [
+  "pyodbc",
+  "pandas",
+  "icecream",
+]
 authors = [
   { name="Rodrigo Morais", email="rodrigohmorais@proton.me" },
 ]
