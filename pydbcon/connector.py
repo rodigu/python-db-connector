@@ -84,7 +84,7 @@ class DBConnector:
         :param bool verbose: whether to verbose print, defaults to True
         :param str id_column: column to be used as ID for update functions
         """
-        self.id_column = 'id'
+        self.id_column = id_column
         self.type_mapper = type_mapper
         self.table = table
         self._connection_string = connection_string
