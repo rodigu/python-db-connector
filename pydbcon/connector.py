@@ -316,6 +316,33 @@ class DBConnector:
         while (row:=self._crsr.fetchone()) is not None:
             yield row
 
+    @staticmethod
+    def connection_from_file(json_fname: str, **args) -> 'DBConnector':
+        """
+        JSON file should have keys such that it fits into the function signature of `DBConnector.create_connection_string`:
+
+        ```json
+        {
+            "driver": "DRIVER",
+            "server_ip": "SERVER IP",
+            "database": "DATABASE",
+            "user_id": "USER ID",
+            "password": "USER PASSWORD",
+            "trusted": False
+        }
+        ```
+
+        Other keyword arguments will e passed onto the DBConnector constructor.
+
+        :param str json_fname: name of the JSON file with the database connection information and auth
+        :return DBConnector: DBConnector instance created using information from given JSON file
+        """
+        import json
+        with open(json_fname) as f:
+            data = json.read(f)
+        connection_string = DBConnector.create_connection_string(**data)
+        return DBConnector(connection_string, **args)
+
 
 if __name__ == "__main__":
     import doctest
