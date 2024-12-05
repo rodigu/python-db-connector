@@ -47,7 +47,7 @@ class TypeMapper:
     >>> tm.map(column_name='any_name', column_type='bool')
     'bit'
     """
-    direct: dict[str, str]
+    direct: dict[str, str] = field(default_factory=dict)
     prefix: dict[str, str] = field(default_factory=dict)
     suffix: dict[str, str] = field(default_factory=dict)
     typed: dict[str, str] = field(default_factory=dict)
@@ -65,7 +65,7 @@ class TypeMapper:
             return self.typed[column_type]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper, verbose=False, id_column='id'):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper=TypeMapper(), verbose=False, id_column='id'):
         """Creates connection to database
 
         Sample `connection_string`:
