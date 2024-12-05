@@ -310,7 +310,7 @@ class DBConnector:
         """Yields row-by-row results for the given SQL selection string
 
         :param str selection_str:
-        :yield list[any]: list of values for the current row
+        :yield tuple[any]: list of values for the current row
         """
         self._crsr.execute(selection_str)
         while (row:=self._crsr.fetchone()) is not None:
