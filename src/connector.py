@@ -209,8 +209,11 @@ class DBConnector:
         :return dict: flatenned dictionary
 
         >>> DBConnector.flatten_dict({'a': 1, 'b': 2})
+        {'a': 1, 'b': 2}
         >>> DBConnector.flatten_dict({'a': 1, 'b': [{'k': 2}]})
-        >>> DBConnector.flatten_dict({'a': 1, 'b': [{'k': 2}, {'k': 1}]}, key='k')
+        {'a': 1, 'b': "[{'k': 2}]"}
+        >>> DBConnector.flatten_dict({'a': 1, 'b': [{'k': 2, 'val': 0}, {'k': 1, 'val': 2}]}, key='k')
+        {'a': 1, 'b': {2: {'val': 0}, 1: {'val': 2}}}
         """
         return { k: DBConnector.flatten_dict_list(v, key) for k, v in d.items() }
 
