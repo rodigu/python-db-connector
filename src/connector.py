@@ -236,16 +236,17 @@ class DBConnector:
         if type(dlist)==dict:
             return DBConnector.flatten_dict(dlist, key)
 
-        no_keys_in_dict = (choose_key(dlist[0]) not in dlist[0] and choose_key(dlist[0]) == None)
-
-        if no_keys_in_dict:
-            return str(dlist)
-
         def choose_key(d: dict) -> str:
             if type(key)==str: return key
             for k in key:
                 if k in d: return k
             return None
+
+        no_keys_in_dict = (choose_key(dlist[0]) not in dlist[0] and choose_key(dlist[0]) == None)
+
+        if no_keys_in_dict:
+            return str(dlist)
+
         flattened = { d[choose_key(d)]: DBConnector.flatten_dict_list(d, key) for d in dlist }
         for v in flattened.values():
             v.pop(choose_key(v))
