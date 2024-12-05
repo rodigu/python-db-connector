@@ -9,7 +9,8 @@ class TypedColumn:
     value: any
     type: str
 
-TableTypeList = dict[str, TypedColumn]
+# Dictionary with column name-typed column pairs
+ColumnTypeList = dict[str, TypedColumn]
 
 @dataclass
 class TypeMapper:
@@ -164,7 +165,7 @@ class DBConnector:
                 self.vp(f"Couldn't execute query: {sql_query}")
                 return
 
-    def get_type_list(self, obj_dict: dict) -> TableTypeList:
+    def get_type_list(self, obj_dict: dict) -> ColumnTypeList:
         """List with column name, value and types extracted from given object dictionary.
 
         :param dict obj_dict: dictionary
@@ -226,7 +227,7 @@ class DBConnector:
             v.pop(choose_key(v))
         return flattened
 
-    def add_columns(self, type_list: TableTypeList):
+    def add_columns(self, type_list: ColumnTypeList):
         for column, t in type_list.items():
             if not self.has_column(column):
                 self.vp(f'Column {column} ({t.type}) does not exist, adding it now.')
@@ -249,7 +250,7 @@ class DBConnector:
             return (data.column, f'{data.value}')
         return (data.column, f"N'{str(data.value).replace("'", '"')}'")
 
-    def sql_update_str(self, type_list: TableTypeList, id: str) -> str:
+    def sql_update_str(self, type_list: ColumnTypeList, id: str) -> str:
         parsed_values: dict[str, str] = dict(map(DBConnector.parse_value, type_list))
         return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where id={id if type(id)==int else f"'{id}'"}"
 
