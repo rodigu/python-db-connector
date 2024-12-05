@@ -48,7 +48,7 @@ class TypeMapper:
             return self.typed[column_type]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper, verbose = False):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper, verbose=False, id_column='id'):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -65,13 +65,16 @@ class DBConnector:
         :param str connection_string: connection string
         :param str table: working table name
         :param bool verbose: whether to verbose print, defaults to True
+        :param str id_column: column to be used as ID for update functions
         """
+        self.id_column = 'id'
         self.type_mapper = type_mapper
         self.table = table
         self._connection_string = connection_string
         self._con = db.connect(connection_string)
         self.verbose = verbose
         self.table_columns: dict[str, TableColumns] = {}
+        self._crsr = self._con.cursor()
 
     def get_table_columns(self) -> TableColumns:
         return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
@@ -263,7 +266,7 @@ class DBConnector:
         :return str: SQL query string
         """
         parsed_values: dict[str, str] = dict(map(DBConnector.parse_value, typed_columns.values()))
-        return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where id={id if type(id)==int else f"'{id}'"}"
+        return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where {self.id_column}={id if type(id)==int else f"'{id}'"}"
 
     def sql_columns_and_values(self, typed_columns: ColumnTypeList) -> tuple[str, str]:
         """Generates SQL strings for columns and values from a given `ColumnTypeList`
