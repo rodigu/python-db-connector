@@ -3,6 +3,9 @@ import pyodbc as db
 from icecream import ic
 from dataclasses import dataclass
 
+
+TableColumns = set[str]
+
 @dataclass
 class TypedColumn:
     column: str
@@ -43,8 +46,6 @@ class TypeMapper:
                 return self.suffix[s]
         if column_type in self.typed:
             return self.typed[column_type]
-
-TableColumns = set[str]
 
 class DBConnector:
     def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper, verbose = False):
