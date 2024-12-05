@@ -284,3 +284,13 @@ class DBConnector:
         """
         columns, values = self.sql_columns_and_values(typed_columns)
         return f'insert into {self.table} ({columns}) values ({values})'
+
+    def select(self, selection_str: str):
+        """Yields row-by-row results for the given SQL selection string
+
+        :param str selection_str:
+        :yield list[any]: list of values for the current row
+        """
+        self._crsr.execute(selection_str)
+        while (row:=self._crsr.fetchone()) is not None:
+            yield row
