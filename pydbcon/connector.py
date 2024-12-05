@@ -317,7 +317,7 @@ class DBConnector:
             yield row
 
     @staticmethod
-    def connection_from_file(json_fname: str, **args) -> 'DBConnector':
+    def connection_from_file(json_fname: str, table: str, **args) -> 'DBConnector':
         """
         JSON file should have keys such that it fits into the function signature of `DBConnector.create_connection_string`:
 
@@ -328,7 +328,7 @@ class DBConnector:
             "database": "DATABASE",
             "user_id": "USER ID",
             "password": "USER PASSWORD",
-            "trusted": False
+            "trusted": 0
         }
         ```
 
@@ -341,7 +341,7 @@ class DBConnector:
         with open(json_fname) as f:
             data = json.read(f)
         connection_string = DBConnector.create_connection_string(**data)
-        return DBConnector(connection_string, **args)
+        return DBConnector(connection_string, table, **args)
 
 
 if __name__ == "__main__":
