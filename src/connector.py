@@ -218,7 +218,7 @@ class DBConnector:
         return { k: DBConnector.flatten_dict_list(v, key) for k, v in d.items() }
 
     @staticmethod
-    def flatten_dict_list(dlist: list[dict], key: str|list[str]) -> dict:
+    def flatten_dict_list(dlist: list[dict], key: str|list[str]):
         """Flattens list of dictionaries recursively
 
         Expects list of dicts to be uniform in terms of keys.
@@ -227,7 +227,7 @@ class DBConnector:
 
         :param list[dict] dlist: list of dictionaries
         :param str | list[str] key: key(s) to be extrated from the dictionaries and turned into dict keys
-        :return dict: flattened dictionary
+        :return: flattened dictionary or value
         """
         wrong_type = lambda x: type(x)!=list and type(x)!=dict
         if wrong_type(dlist) or (type(dlist)==list and len(dlist) > 0 and wrong_type(dlist[0])):
