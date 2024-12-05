@@ -26,9 +26,26 @@ class TypeMapper:
     Will use first dictionary where it finds the given value
 
     :param dict[str, str] direct: direct mapping, will map from column name (dict key) to SQL type (dict value)
-    :param dict[str, str] prefix: will map from column name that has given prefix (dict key) to SQL type (dict value)
-    :param dict[str, str] suffix: will map from column name that has given suffix (dict key) to SQL type (dict value)
-    :param dict[str, str] typed: will map from pandas type (dict key) to SQL type (dict value)
+    :param dict[str, str] prefix: will map from column name that has given prefix (dict key) to SQL type (dict value), defaults to an empty dictionary
+    :param dict[str, str] suffix: will map from column name that has given suffix (dict key) to SQL type (dict value), defaults to an empty dictionary
+    :param dict[str, str] typed: will map from pandas type (dict key) to SQL type (dict value), defaults to an empty dictionary
+
+    >>> tm = TypeMapper(
+    ...     direct={'sample_column': 'int', 'another_column': 'varchar(10)'},
+    ...     prefix={'pre_': 'varchar(10)'},
+    ...     suffix={'_su': 'int'},
+    ...     typed={'int64': 'int', 'float64': 'decimal', 'bool': 'bit', 'object': 'varchar(max)'}
+    ... )
+    >>> tm.map(column_name='sample_column')
+    'int'
+    >>> tm.map(column_name='another_column')
+    'varchar(10)'
+    >>> tm.map(column_name='pre_column')
+    'varchar(10)'
+    >>> tm.map(column_name='column_su')
+    'int'
+    >>> tm.map(column_name='any_name', column_type='bool')
+    'bit'
     """
     direct: dict[str, str]
     prefix: dict[str, str] = field(default_factory=dict)
@@ -294,3 +311,8 @@ class DBConnector:
         self._crsr.execute(selection_str)
         while (row:=self._crsr.fetchone()) is not None:
             yield row
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
