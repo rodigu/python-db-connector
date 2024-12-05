@@ -1,7 +1,7 @@
 import pandas as pd
 import pyodbc as db
 from icecream import ic
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 TableColumns = set[str]
@@ -31,11 +31,11 @@ class TypeMapper:
     :param dict[str, str] typed: will map from pandas type (dict key) to SQL type (dict value)
     """
     direct: dict[str, str]
-    prefix: dict[str, str]
-    suffix: dict[str, str]
-    typed: dict[str, str]
+    prefix: dict[str, str] = field(default_factory=dict)
+    suffix: dict[str, str] = field(default_factory=dict)
+    typed: dict[str, str] = field(default_factory=dict)
 
-    def map(self, column_name: str, column_type: str) -> str:
+    def map(self, column_name: str, column_type: str=None) -> str:
         if column_name in self.direct:
             return self.direct[column_name]
         for p in self.prefix:
