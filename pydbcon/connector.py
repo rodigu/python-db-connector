@@ -129,6 +129,9 @@ class DBConnector:
         :param str password: user password
         :param bool trusted: if the connection is trusted, defaults to False
         :return str: pyodbc-valid connection string
+
+        >>> DBConnector.create_connection_string('{DRIVER_NAME}', 'SERVER_IP', 'DATABASE', 'USER_ID', 'USER_PASSWORD')
+        'Driver={DRIVER_NAME};Server=SERVER_IP;Database=DATABASE;UID=USER_ID;PWD=USER_PASSWORD;Trusted_Connection=no;'
         """
         return f"Driver={driver};Server={server_ip};Database={database};UID={user_id};PWD={password};Trusted_Connection={'yes' if trusted else 'no'};"
 
@@ -375,7 +378,7 @@ class DBConnector:
         :param dict obj_dict: dictionary to be appended
         :param bool recache: whether to recache table IDs, defaults to True
         :param bool force: if object ID is already present in the table, the row will be updated with the given values inside `obj_dict`, defaults to False
-        :param bool do_create_columns: if columns don't exist in the table, they will be added (as opposed to throwing an error when set to False), defaults to True
+        :param bool do_create_columns: if columns don't exist in the table, they will be added to the table (as opposed to throwing an error when set to False), defaults to True
         :return bool: if append was successful
         """
         id=obj_dict[self.id_column]
