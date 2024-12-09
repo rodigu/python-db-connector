@@ -358,6 +358,49 @@ class DBConnector:
         connection_string = DBConnector.create_connection_string(**data)
         return DBConnector(connection_string, table, **args)
 
+    def get_table_ids(self, recache=True) -> set[int]:
+        """Retrieves ID column from given table.
+
+        :param bool recache: if True, table IDs weill be recached through a call to the SQL table.
+        :return set: set with IDs
+        """
+        if recache or self.id_cache is None:
+            ids = self.execute(f'select [{self.id_column}] from [{self.table}]')
+            self.id_cache = set(i[0] for i in ([] if ids is None else ids.fetchall()))
+        return self.id_cache
+
+    def insert_dict(self, obj_dict: dict, recache=True, force=False, do_create_columns=True) -> bool:
+        """Inserts generic dictionary to table
+
+        :param dict obj_dict: dictionary to be appended
+        :param bool recache: whether to recache table IDs, defaults to True
+        :param bool force: if object ID is already present in the table, the row will be updated with the given values inside `obj_dict`, defaults to False
+        :param bool do_create_columns: if columns don't exist in the table, they will be added (as opposed to throwing an error when set to False), defaults to True
+        :return bool: if append was successful
+        """
+        id=obj_dict[self.id_column]
+        if id in self.get_table_ids(recache):
+            self.vp(f"{obj_dict[self.id_column]} already in table")
+            if not force:
+                return False
+            self.vp("tAppending object anyway")
+
+        type_list = self.type_list(obj_dict)
+
+        if do_create_columns:
+            self.add_columns(type_list)
+
+        sql_query = self.sql_insertion_str(type_list)
+
+        if id in self.get_table_ids(recache):
+            sql_query = self.sql_update_str(type_list, id)
+
+        self.id_cache.add(obj_dict[self.id_column])
+
+        self.execute(sql_query=sql_query)
+        self.commit()
+        return True
+
 
 if __name__ == "__main__":
     import doctest
