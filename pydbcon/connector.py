@@ -143,6 +143,10 @@ class DBConnector:
         """
         return bool(self._con.cursor().tables(table=self.table, tableType='TABLE').fetchone())
 
+    def create_table(self):
+        self.execute(sql_query=f'create table {self.table}')
+        self.commit()
+
     def reconnect(self):
         self._con = db.connect(self._connection_string)
 
@@ -386,7 +390,7 @@ class DBConnector:
             self.vp(f"{obj_dict[self.id_column]} already in table")
             if not force:
                 return False
-            self.vp("tAppending object anyway")
+            self.vp("Appending object anyway")
 
         type_list = self.type_list(obj_dict)
 
