@@ -103,7 +103,7 @@ class DBConnector:
     def cache_table_columns(self):
         """Caches table columns from SQL database
         """
-        self.table_columns = self.get_table_columns(self.table)
+        self.table_columns = self.get_table_columns()
 
     def has_column(self, column: str) -> bool:
         return column in self.table_columns
