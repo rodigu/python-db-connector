@@ -92,7 +92,7 @@ class DBConnector:
         self._connection_string = connection_string
         self._con = db.connect(connection_string)
         self.verbose = verbose
-        self.table_columns: dict[str, TableColumns] = {}
+        self.cache_table_columns()
         self._crsr = self._con.cursor()
 
     def get_table_columns(self) -> TableColumns:
@@ -147,6 +147,7 @@ class DBConnector:
 
     def create_table(self, type_list: ColumnTypeList):
         self.execute(sql_query=f'create table {self.table}({', '.join((f'[{t.column}] {t.type}' for t in type_list))})')
+        self.cache_table_columns()
         self.commit()
 
     def reconnect(self):
