@@ -400,7 +400,7 @@ class DBConnector:
                 return False
             self.vp("Appending object anyway")
 
-        type_list = self.type_list(obj_dict)
+        type_list = self.typed_columns(obj_dict)
 
         if do_create_columns:
             self.add_columns(type_list)
