@@ -148,7 +148,7 @@ class DBConnector:
         return bool(self._con.cursor().tables(table=self.table, tableType='TABLE').fetchone())
 
     def create_table(self):
-        self.execute(sql_query=f'create table {self.table}')
+        self.execute(sql_query=f'create table {self.table}()')
         self.commit()
 
     def reconnect(self):
