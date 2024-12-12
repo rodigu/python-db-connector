@@ -65,7 +65,7 @@ class TypeMapper:
             return self.typed[column_type]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper=TypeMapper(), verbose=False, id_column='id', create_table=True):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -84,6 +84,8 @@ class DBConnector:
         :param bool verbose: whether to verbose print, defaults to True
         :param str id_column: column to be used as ID for update functions
         """
+        if type(type_mapper) == dict:
+            type_mapper = TypeMapper(**type_mapper)
         self.id_column = id_column
         self.type_mapper = type_mapper
         self.table = table
