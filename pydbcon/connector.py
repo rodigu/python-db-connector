@@ -301,7 +301,7 @@ class DBConnector:
             return (data.column, 'NULL')
         if data.type == 'bit':
             return (data.column, str(int(data.value)))
-        if 'int' in data.type:
+        if 'int' == data.type:
             return (data.column, f'{data.value}')
         return (data.column, f"N'{str(data.value).replace("'", '"')}'")
 
