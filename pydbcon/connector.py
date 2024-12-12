@@ -396,7 +396,7 @@ class DBConnector:
             self.create_table(type_list)
 
         if id in self.get_table_ids(recache):
-            self.vp(f"{obj_dict[self.id_column]} already in table")
+            self.vp(f"{id} already in table")
             if not force:
                 return False
             self.vp("Appending object anyway")
