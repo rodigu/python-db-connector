@@ -103,10 +103,10 @@ class DBConnector:
     def cache_table_columns(self):
         """Caches table columns from SQL database
         """
-        self.table_columns['table'] = self.get_table_columns(self.table)
+        self.table_columns = self.get_table_columns(self.table)
 
     def has_column(self, column: str) -> bool:
-        return column in self.table_columns[self.table]
+        return column in self.table_columns
 
     def add_column(self, column: str, column_type: str):
         self.execute(f'alter table [{self.table}] add [{column}] {column_type} NULL')
@@ -392,6 +392,7 @@ class DBConnector:
         type_list = self.typed_columns(obj_dict)
 
         id = [ t for t in type_list if t.column=='values.id_cliente' ][0].value
+
         if id in self.get_table_ids(recache):
             self.vp(f"{obj_dict[self.id_column]} already in table")
             if not force:
