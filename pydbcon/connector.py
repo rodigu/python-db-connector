@@ -13,7 +13,7 @@ class TypedColumn:
     type: str
 
 # Dictionary with column name-typed column pairs
-ColumnTypeList = dict[str, TypedColumn]
+ColumnTypeList = list[TypedColumn]
 
 @dataclass
 class TypeMapper:
@@ -206,7 +206,7 @@ class DBConnector:
         df = pd.json_normalize(obj_dict)
         pd_types = df.dtypes.to_dict()
 
-        return { key: TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if val is not None }
+        return [ TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if val is not None ]
 
     @staticmethod
     def flatten_dict(d: dict, key: str|list[str] = []) -> dict:
@@ -271,10 +271,10 @@ class DBConnector:
 
         :param ColumnTypeList typed_columns: dictionary of column names and their respective types
         """
-        for column, t in typed_columns.items():
-            if not self.has_column(column):
-                self.vp(f'Column {column} ({t.type}) does not exist, adding it now.')
-                self.add_column(column, t.type)
+        for t in typed_columns:
+            if not self.has_column(t.column):
+                self.vp(f'Column {t.column} ({t.type}) does not exist, adding it now.')
+                self.add_column(t.column, t.type)
                 self.cache_table_columns()
 
     @staticmethod
@@ -312,7 +312,7 @@ class DBConnector:
         :param str id: row ID
         :return str: SQL query string
         """
-        parsed_values: dict[str, str] = dict(map(DBConnector.parse_value, typed_columns.values()))
+        parsed_values: dict[str, str] = dict(map(DBConnector.parse_value, typed_columns))
         return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where {self.id_column}={id if type(id)==int else f"'{id}'"}"
 
     def sql_columns_and_values(self, typed_columns: ColumnTypeList) -> tuple[str, str]:
@@ -321,7 +321,7 @@ class DBConnector:
         :param ColumnTypeList typed_columns:
         :return tuple[str, str]: tuple with columns and values strings (respectively)
         """
-        return f"[{'], ['.join([t.column for t in typed_columns])}]", ', '.join(dict(map(DBConnector.parse_value, typed_columns.values())).values())
+        return f"[{'], ['.join([t.column for t in typed_columns])}]", ', '.join(dict(map(DBConnector.parse_value, typed_columns)).values())
 
     def sql_insertion_str(self, typed_columns: ColumnTypeList) -> str:
         """Creates valid SQL string to insert a row using the given typed columns.
