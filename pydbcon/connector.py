@@ -378,15 +378,19 @@ class DBConnector:
             self.id_cache = set(i[0] for i in ([] if ids is None else ids.fetchall()))
         return self.id_cache
 
-    def insert_dict(self, obj_dict: dict, recache=True, force=False, do_create_columns=True) -> bool:
+    def insert_dict(self, obj_dict: dict, recache=True, force=False, do_create_columns=True, do_flatten=True, flatten_key=[]) -> bool:
         """Inserts generic dictionary to table
 
         :param dict obj_dict: dictionary to be appended
         :param bool recache: whether to recache table IDs, defaults to True
         :param bool force: if object ID is already present in the table, the row will be updated with the given values inside `obj_dict`, defaults to False
         :param bool do_create_columns: if columns don't exist in the table, they will be added to the table (as opposed to throwing an error when set to False), defaults to True
+        :param bool do_flatten: runs given dict through `DBConnector.flatten_dict` if True, defaults to True
+        :param bool flatten_key: key or keys passed to `DBConnector.flatten_dict` only used when `do_flatten` is True, defaults to `[]`
         :return bool: if append was successful
         """
+        if do_flatten:
+            obj_dict = DBConnector.flatten_dict(obj_dict, key=flatten_key)
         id=obj_dict[self.id_column]
         if id in self.get_table_ids(recache):
             self.vp(f"{obj_dict[self.id_column]} already in table")
