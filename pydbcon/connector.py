@@ -146,7 +146,7 @@ class DBConnector:
         return bool(self._con.cursor().tables(table=self.table, tableType='TABLE').fetchone())
 
     def create_table(self, type_list: ColumnTypeList):
-        self.execute(sql_query=f'create table {self.table}({', '.join((f'[{t.column}] {DBConnector.parse_value(t.type)}' for t in type_list))})')
+        self.execute(sql_query=f'create table {self.table}({', '.join((f'[{t.column}] {t.type}' for t in type_list))})')
         self.commit()
 
     def reconnect(self):
