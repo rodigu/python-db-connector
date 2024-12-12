@@ -94,8 +94,6 @@ class DBConnector:
         self.verbose = verbose
         self.table_columns: dict[str, TableColumns] = {}
         self._crsr = self._con.cursor()
-        if not self.has_table():
-            self.create_table()
 
     def get_table_columns(self) -> TableColumns:
         return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
@@ -147,8 +145,8 @@ class DBConnector:
         """
         return bool(self._con.cursor().tables(table=self.table, tableType='TABLE').fetchone())
 
-    def create_table(self):
-        self.execute(sql_query=f'create table {self.table}()')
+    def create_table(self, type_list: ColumnTypeList):
+        self.execute(sql_query=f'create table {self.table}({', '.join((f'{t.column} {t.type}' for t in type_list))})')
         self.commit()
 
     def reconnect(self):
@@ -399,6 +397,8 @@ class DBConnector:
                 return False
             self.vp("Appending object anyway")
 
+        if not self.has_table():
+            self.create_table(type_list)
 
         if do_create_columns:
             self.add_columns(type_list)
