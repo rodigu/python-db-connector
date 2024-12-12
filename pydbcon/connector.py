@@ -408,7 +408,7 @@ class DBConnector:
         if id in self.get_table_ids(recache):
             sql_query = self.sql_update_str(type_list, id)
 
-        self.id_cache.add(obj_dict[self.id_column])
+        self.id_cache.add(id)
 
         self.execute(sql_query=sql_query)
         self.commit()
