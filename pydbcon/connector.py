@@ -391,14 +391,14 @@ class DBConnector:
 
         id = [ t for t in type_list if t.column=='values.id_cliente' ][0].value
 
+        if not self.has_table():
+            self.create_table(type_list)
+
         if id in self.get_table_ids(recache):
             self.vp(f"{obj_dict[self.id_column]} already in table")
             if not force:
                 return False
             self.vp("Appending object anyway")
-
-        if not self.has_table():
-            self.create_table(type_list)
 
         if do_create_columns:
             self.add_columns(type_list)
