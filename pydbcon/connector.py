@@ -390,7 +390,7 @@ class DBConnector:
         """
         type_list = self.typed_columns(obj_dict)
 
-        id = [ t for t in type_list if t.column=='values.id_cliente' ][0].value
+        id = [ t for t in type_list if t.column==self.id_column ][0].value
 
         if not self.has_table():
             self.vp(f'Table {self.table} does not exist in database. Creating it now.')
