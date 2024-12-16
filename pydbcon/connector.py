@@ -393,6 +393,7 @@ class DBConnector:
         id = [ t for t in type_list if t.column=='values.id_cliente' ][0].value
 
         if not self.has_table():
+            self.vp(f'Table {self.table} does not exist in database. Creating it now.')
             self.create_table(type_list)
 
         if id in self.get_table_ids(recache):
