@@ -13,7 +13,7 @@ Simplified appending of dictionary-like values to a SQL database
 ## installation
 
 ```bash
-python -m pip install git+https://github.com/rodigu/zendesk-db-connector -U
+python -m pip install git+https://github.com/rodigu/python-db-connector -U
 ```
 
 ## basic usage
