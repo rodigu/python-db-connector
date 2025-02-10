@@ -65,7 +65,7 @@ class TypeMapper:
             return self.typed[column_type]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True, default_logger=ic):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -83,6 +83,7 @@ class DBConnector:
         :param str table: working table name
         :param bool verbose: whether to verbose print, defaults to True
         :param str id_column: column to be used as ID for update functions
+        :param callable default_logger: logging function, defaults to `ic`
         """
         if type(type_mapper) == dict:
             type_mapper = TypeMapper(**type_mapper)
@@ -113,12 +114,12 @@ class DBConnector:
     def vp(self, content: str):
         """Verbose prints.
 
-        Passes `content` to icecream's `ic` if `self.verbose` is set to `True`
+        Passes `content` to `default_logger` (`ic`, if unset) if `self.verbose` is set to `True`]
 
-        :param str content: string to be sent to `ic`
+        :param str content: string to be sent to `default_logger`
         """
         if self.verbose:
-            ic(content)
+            self.default_logger(content)
 
     @staticmethod
     def create_connection_string(driver: str, server_ip: str, database: str, user_id: str, password: str, trusted=False) -> str:
