@@ -419,6 +419,21 @@ class DBConnector:
         self.commit()
         return True
 
+    @staticmethod
+    def composite_id_dict(original_dict: dict, id_name: str, id_keys: list, separator='+') -> dict:
+        """Takes an `original_dict` and returns a dictionary with the same keys, and an additional key-value pair.
+
+        The aditional key-value pair has a `key=id_name`
+        and a value equals to a concatenation of the values in each respective key from the `original_dict`
+
+        :param dict original_dict: original dictionary
+        :param str id_name: name of the new ID key
+        :param list id_keys: keys from `original_dict` that will be concatenated into `id_name`
+        :param str separator: separator used in concatenation of values, defaults to '+'
+        :return dict: new dictionary (shallow copy of `original_dict`)
+        """
+        return dict(**{ id_name: separator.join((str(original_dict[k]) for k in id_keys)) }, **original_dict)
+
 
 if __name__ == "__main__":
     import doctest
