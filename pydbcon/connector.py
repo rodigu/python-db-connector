@@ -65,7 +65,7 @@ class TypeMapper:
             return self.typed[column_type]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True, default_logger=ic):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True, logger=ic):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -83,7 +83,7 @@ class DBConnector:
         :param str table: working table name
         :param bool verbose: whether to verbose print, defaults to True
         :param str id_column: column to be used as ID for update functions
-        :param callable default_logger: logging function, defaults to `ic`
+        :param Callable logger: logging function, defaults to `ic`
         """
         if type(type_mapper) == dict:
             type_mapper = TypeMapper(**type_mapper)
@@ -95,6 +95,7 @@ class DBConnector:
         self.verbose = verbose
         self.cache_table_columns()
         self._crsr = self._con.cursor()
+        self.logger = logger
 
     def get_table_columns(self) -> TableColumns:
         return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
@@ -114,12 +115,12 @@ class DBConnector:
     def vp(self, content: str):
         """Verbose prints.
 
-        Passes `content` to `default_logger` (`ic`, if unset) if `self.verbose` is set to `True`]
+        Passes `content` to `logger` (`ic`, if unset) if `self.verbose` is set to `True`]
 
-        :param str content: string to be sent to `default_logger`
+        :param str content: string to be sent to `logger`
         """
         if self.verbose:
-            self.default_logger(content)
+            self.logger(content)
 
     @staticmethod
     def create_connection_string(driver: str, server_ip: str, database: str, user_id: str, password: str, trusted=False) -> str:
