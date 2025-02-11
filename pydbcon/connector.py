@@ -96,6 +96,7 @@ class DBConnector:
         self.cache_table_columns()
         self._crsr = self._con.cursor()
         self.logger = logger
+        self.id_cache = None
 
     def get_table_columns(self) -> TableColumns:
         return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
