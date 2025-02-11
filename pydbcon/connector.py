@@ -163,17 +163,17 @@ class DBConnector:
         try:
             self._con.commit()
         except db.Error as pe:
-            self.vp(f"Error: {pe}")
+            self.vp(f"\t---commit error: {pe}")
             if reconnect_attempts == 0:
                 return
-            self.vp(f'Retrying commit ({reconnect_attempts} attempts left)')
+            self.vp(f"\t---reattempting commit ({reconnect_attempts})")
             try:
                 self.reconnect()
                 self.commit(reconnect_attempts - 1)
             except:
-                self.vp("Couldn't reconnect")
+                self.vp(f"\t---couldn't reconnect to db")
 
-    def execute(self, sql_query: str, tries=10, is_first=True):
+    def execute(self, sql_query: str, tries=10, is_first=True, current=1):
         """Executes the given SQL query.
 
         :param str sql_query: SQL query string
@@ -181,21 +181,22 @@ class DBConnector:
         :param bool is_first: used to track number of tries, defaults to True
         """
         if tries==0:
-            self.vp(f"Couldn't execute query: {sql_query}")
+            self.vp(f"{_tabs}---failed to execute {sql_query}")
             return
+
+        _tabs = '\t' * current
 
         try:
             r = self._con.execute(sql_query)
             if not is_first:
-                self.vp("Execute successful")
+                self.vp(f"{_tabs}---execute successful")
             return r
         except db.Error as pe:
-            self.vp(f"Error: {pe}")
+            self.vp(f"{_tabs}---could not execute: {pe}")
             try:
-                self.vp(f'Retrying execute ({tries} attempts left)')
-                return self.execute(sql_query, tries - 1, False)
+                self.vp(f"{_tabs}---attempt {current} ({tries} left)")
+                return self.execute(sql_query, tries - 1, False, current + 1)
             except:
-                self.vp(f"Couldn't execute query: {sql_query}")
                 return
 
     def typed_columns(self, obj_dict: dict) -> ColumnTypeList:
@@ -274,7 +275,6 @@ class DBConnector:
         """
         for t in typed_columns:
             if not self.has_column(t.column):
-                self.vp(f'Column {t.column} ({t.type}) does not exist, adding it now.')
                 self.add_column(t.column, t.type)
                 self.cache_table_columns()
 
@@ -395,14 +395,13 @@ class DBConnector:
         id = [ t for t in type_list if t.column==self.id_column ][0].value
 
         if not self.has_table():
-            self.vp(f'Table {self.table} does not exist in database. Creating it now.')
             self.create_table(type_list)
 
         if id in self.get_table_ids(recache):
-            self.vp(f"{id} already in table")
             if not force:
                 return False
-            self.vp("Appending object anyway")
+
+        self.vp(f'> {id}')
 
         if do_create_columns:
             self.add_columns(type_list)
@@ -410,6 +409,7 @@ class DBConnector:
         sql_query = self.sql_insertion_str(type_list)
 
         if id in self.get_table_ids(recache):
+            self.vp(f'\t...updating')
             sql_query = self.sql_update_str(type_list, id)
 
         self.id_cache.add(id)
