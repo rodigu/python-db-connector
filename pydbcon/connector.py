@@ -382,18 +382,24 @@ class DBConnector:
             self.id_cache = set(i[0] for i in ([] if ids is None else ids.fetchall()))
         return self.id_cache
 
-    def insert_dict(self, obj_dict: dict, recache=True, force=False, do_create_columns=True) -> bool:
+    def insert_dict(self, obj_dict: dict, recache=True, force=False, do_create_columns=True, do_composite_id=False, composite_id_kwargs={}) -> bool:
         """Inserts generic dictionary to table
 
         :param dict obj_dict: dictionary to be appended
         :param bool recache: whether to recache table IDs, defaults to True
         :param bool force: if object ID is already present in the table, the row will be updated with the given values inside `obj_dict`, defaults to False
         :param bool do_create_columns: if columns don't exist in the table, they will be added to the table (as opposed to throwing an error when set to False), defaults to True
+        :param bool do_composite_id: if True, adds a composite ID to the flattened dictionary using the `DBConnector.composite_id_type_column` function, defaults to False
+        :param bool composite_id_kwargs: if `do_composite_id` is set to True, this parameter will be destructured and fed into `DBConnector.composite_id_type_column`, defaults to {}
         :return bool: if append was successful
         """
         type_list = self.typed_columns(obj_dict)
 
-        id = [ t for t in type_list if t.column==self.id_column ][0].value
+        if do_composite_id:
+            id = composite_id_kwargs['id_name']
+            type_list += [ DBConnector.composite_id_type_column(type_list, ** composite_id_kwargs) ]
+        else:
+            id = [ t for t in type_list if t.column==self.id_column ][0].value
 
         if not self.has_table():
             self.create_table(type_list)
