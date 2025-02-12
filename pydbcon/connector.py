@@ -434,6 +434,12 @@ class DBConnector:
         """
         return dict(**{ id_name: separator.join((str(original_dict[k]) for k in id_keys)) }, **original_dict)
 
+    @staticmethod
+    def composite_id_type_column(type_list: ColumnTypeList, id_name: str, id_keys: set, separator='+') -> TypedColumn:
+        return TypedColumn(
+            column=id_name,
+            value=separator.join(str(x.value) for x in type_list if x.column in id_keys)
+        )
 
 if __name__ == "__main__":
     import doctest
