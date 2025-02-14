@@ -454,12 +454,15 @@ class DBConnector:
 
         :param dict dictionary: dictionary of values
         """
-        pass
+        if self.df is None:
+            self.df = pd.json_normalize(dictionary)
+            return
+        self.df = pd.concat([ self.df, pd.json_normalize(dictionary) ], ignore_index=True)
 
     def execute_batch(self):
         """Executes batch cached in dataframe, then clears it
         """
-        pass
+
 
 if __name__ == "__main__":
     import doctest
