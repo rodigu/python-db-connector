@@ -447,6 +447,20 @@ class DBConnector:
             type="varchar(max)"
         )
 
+    def append_to_batch(self, dictionary: dict):
+        """Appends given dictionary to batch dataframe in cache
+
+        Does not execute to SQL databse.
+
+        :param dict dictionary: dictionary of values
+        """
+        pass
+
+    def execute_batch(self):
+        """Executes batch cached in dataframe, then clears it
+        """
+        pass
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
