@@ -396,10 +396,9 @@ class DBConnector:
         type_list = self.typed_columns(obj_dict)
 
         if do_composite_id:
-            id = composite_id_kwargs['id_name']
+            self.id_column = composite_id_kwargs['id_name']
             type_list += [ DBConnector.composite_id_type_column(type_list, ** composite_id_kwargs) ]
-        else:
-            id = [ t for t in type_list if t.column==self.id_column ][0].value
+        id = [ t for t in type_list if t.column==self.id_column ][0].value
 
         if not self.has_table():
             self.create_table(type_list)
