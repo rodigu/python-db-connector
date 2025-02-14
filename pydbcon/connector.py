@@ -459,6 +459,10 @@ class DBConnector:
             return
         self.df = pd.concat([ self.df, pd.json_normalize(dictionary) ], ignore_index=True)
 
+    @staticmethod
+    def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator: str) -> pd.Series:
+        return df[id_keys[0]].str.cat(df[id_keys[1:]].astype(str), sep=separator)
+
     def execute_batch(self):
         """Executes batch cached in dataframe, then clears it
         """
