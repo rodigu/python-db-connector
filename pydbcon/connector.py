@@ -203,7 +203,7 @@ class DBConnector:
             except:
                 return
 
-    def typed_columns(self, obj_dict: dict) -> ColumnTypeList:
+    def typed_columns(self, obj_dict: dict, do_keep_nulls=False) -> ColumnTypeList:
         """List with column name, value and types extracted from given object dictionary.
 
         :param dict obj_dict: dictionary
@@ -212,7 +212,9 @@ class DBConnector:
         df = pd.json_normalize(obj_dict)
         pd_types = df.dtypes.to_dict()
 
-        return [ TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if val is not None ]
+        skip_none = lambda v: True if do_keep_nulls else (v is not None)
+
+        return [ TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if skip_none(val) ]
 
     @staticmethod
     def flatten_dict(d: dict, key: str|list[str] = []) -> dict:
