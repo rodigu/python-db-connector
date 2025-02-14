@@ -65,7 +65,7 @@ class TypeMapper:
             return self.typed[column_type]
 
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True, logger=ic):
+    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', create_table=True, logger=ic, do_composite_id=False, composite_kwargs={}):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -97,6 +97,9 @@ class DBConnector:
         self._crsr = self._con.cursor()
         self.logger = logger
         self.id_cache = None
+        self.df: pd.DataFrame = None
+        self.do_composite_id = do_composite_id
+        self.composite_kwargs = composite_kwargs
 
     def get_table_columns(self) -> TableColumns:
         return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
