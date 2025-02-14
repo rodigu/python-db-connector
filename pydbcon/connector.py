@@ -444,7 +444,8 @@ class DBConnector:
     def composite_id_type_column(type_list: ColumnTypeList, id_name: str, id_keys: set, separator='+') -> TypedColumn:
         return TypedColumn(
             column=id_name,
-            value=separator.join(str(x.value) for x in type_list if x.column in id_keys)
+            value=separator.join(str(x.value) for x in type_list if x.column in id_keys),
+            type="varchar(max)"
         )
 
 if __name__ == "__main__":
