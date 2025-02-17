@@ -474,7 +474,7 @@ class DBConnector:
         cursor.executemany()
 
     def execute_batch(self):
-        """Executes batch cached in dataframe, then clears it
+        """Executes batch cached in dataframe, then clears cache
         """
         if self.do_composite_id:
             self.id_column = self.composite_kwargs['id_name']
@@ -483,6 +483,21 @@ class DBConnector:
         update_df = self.df[self.df[self.id_column].isin(self.id_cache)]
         # append dicts that aren't
         append_df = self.df[~self.df[self.id_column].isin(self.id_cache)]
+
+        # convert first row into type_list
+        pd_types = self.df.dtypes.to_dict()
+        type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items()]
+
+        # create table if it doesn't exist
+        if not self.has_table():
+            self.create_table(type_list)
+
+        # create columns that don't exist
+        self.add_columns(type_list)
+
+        # create sql query
+
+        # execute sql query
 
         # add newly appended dicts to cache
         self.id_cache |= set(append_df[self.id_column])
