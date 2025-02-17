@@ -9,7 +9,7 @@ TableColumns = set[str]
 @dataclass
 class TypedColumn:
     column: str
-    value: any
+    value: any = None
     type: str
 
 # Dictionary with column name-typed column pairs
