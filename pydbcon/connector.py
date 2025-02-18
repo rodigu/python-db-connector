@@ -468,10 +468,29 @@ class DBConnector:
     def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator: str) -> pd.Series:
         return df[id_keys[0]].str.cat(df[id_keys[1:]].astype(str), sep=separator)
 
-    def executemany(self):
-        cursor = self._con.cursor()
-        cursor.fast_executemany = True
-        cursor.executemany()
+    def executemany(self, iterable_values, number_of_columns: int, columns: str, tries=10, current=0, is_first=True):
+        _tabs = '\t' * current
+
+        if tries==0:
+            self.vp(f"{_tabs}---failed to execute")
+            return
+
+        try:
+            cursor = self._con.cursor()
+            cursor.fast_executemany = True
+            question_marks = ('?,' * number_of_columns)[:-1]
+            r = cursor.executemany(f"insert into {self.table} ({columns}) values ({question_marks})", iterable_values)
+
+            if not is_first:
+                self.vp(f"{_tabs}---execute successful")
+            return r
+        except db.Error as pe:
+            self.vp(f"{_tabs}---could not execute: {pe}")
+            try:
+                self.vp(f"{_tabs}---attempt {current} ({tries} left)")
+                return self.executemany(iterable_values, number_of_columns=number_of_columns, columns=columns, tries=tries - 1, is_first=False, current=current + 1)
+            except:
+                return
 
     def execute_batch(self):
         """Executes batch cached in dataframe, then clears cache
