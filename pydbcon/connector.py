@@ -184,11 +184,11 @@ class DBConnector:
         :param int tries: number of times to try executing the query before giving up, defaults to 10
         :param bool is_first: used to track number of tries, defaults to True
         """
+        _tabs = '\t' * current
+
         if tries==0:
             self.vp(f"{_tabs}---failed to execute {sql_query}")
             return
-
-        _tabs = '\t' * current
 
         try:
             r = self._con.execute(sql_query)
