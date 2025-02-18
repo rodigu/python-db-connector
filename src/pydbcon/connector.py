@@ -9,8 +9,8 @@ TableColumns = set[str]
 @dataclass
 class TypedColumn:
     column: str
-    value: any = None
     type: str
+    value: any = None
 
 # Dictionary with column name-typed column pairs
 ColumnTypeList = list[TypedColumn]
