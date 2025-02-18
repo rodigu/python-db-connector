@@ -22,6 +22,5 @@ classifiers = [
 Homepage = "https://github.com/rodigu/python-db-connector"
 Issues = "https://github.com/rodigu/python-db-connector/issues"
 
-[tool.setuptools]
-# ...
-package-dir = {"" = "pydbcon"}
+[tool.setuptools.package-dir]
+mypkg = "pydbcon"
