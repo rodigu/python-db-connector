@@ -1,6 +1,6 @@
 [project]
 name = "pydbcon"
-version = "0.3.9"
+version = "0.3.10"
 dependencies = [
   "pyodbc",
   "pandas",
@@ -21,6 +21,3 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/rodigu/python-db-connector"
 Issues = "https://github.com/rodigu/python-db-connector/issues"
-
-[tool.setuptools.package-dir]
-mypkg = "pydbcon"
