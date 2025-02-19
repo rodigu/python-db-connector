@@ -500,9 +500,9 @@ class DBConnector:
             self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'], separator=self.composite_kwargs['separator'])
 
         # update dicts that are already in cache
-        update_df = self.df[self.df[self.id_column].isin(self.id_cache)]
+        update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
         # append dicts that aren't
-        append_df = self.df[~self.df[self.id_column].isin(self.id_cache)]
+        append_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
 
         # convert first row into type_list
         pd_types = self.df.dtypes.to_dict()
@@ -527,7 +527,7 @@ class DBConnector:
         self.executemany(tuple(v.values for _, v in append_df.iterrows()) + (self.df[self.id_column],), query_string=update_query)
 
         # add newly appended dicts to cache
-        self.id_cache |= set(append_df[self.id_column])
+        self.id_cache |= set(self.df[self.id_column])
 
         self.df = None
 
