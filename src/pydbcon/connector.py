@@ -482,6 +482,8 @@ class DBConnector:
             cursor.fast_executemany = True
             r = cursor.executemany(query_string, iterable_values)
 
+            cursor.commit()
+
             if not is_first:
                 self.vp(f"{_tabs}---execute successful")
             return r
