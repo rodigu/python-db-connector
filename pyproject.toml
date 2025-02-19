@@ -1,6 +1,6 @@
 [project]
 name = "pydbcon"
-version = "0.3.11"
+version = "0.3.12"
 dependencies = [
   "pyodbc",
   "pandas",
