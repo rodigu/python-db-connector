@@ -500,14 +500,18 @@ class DBConnector:
         if self.do_composite_id:
             self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'])
 
+        # convert first row into type_list
+        pd_types = self.df.dtypes.to_dict()
+        type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items()]
+
+        for typed_col in type_list:
+            if typed_col.type=='datetime':
+                self.df[typed_col.column] = self.df[typed_col.column].astype('datetime64[s]')
+
         # update dicts that are already in cache
         update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
         # append dicts that aren't
         insert_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
-
-        # convert first row into type_list
-        pd_types = self.df.dtypes.to_dict()
-        type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items()]
 
         # create table if it doesn't exist
         if not self.has_table():
