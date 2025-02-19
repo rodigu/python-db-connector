@@ -306,12 +306,14 @@ class DBConnector:
 
         """
 
+        if data.type == 'datetime':
+            return (data.column, data.value)
         if (data.value is None) or (type(data.value)==str and len(data.value)==0):
             return (data.column, 'NULL')
         if data.type == 'bit':
             return (data.column, str(int(data.value)))
         if 'int' == data.type:
-            return (data.column, f'{data.value}')
+            return (data.column, data.value)
         return (data.column, f"N'{str(data.value).replace("'", '"')}'")
 
     def sql_update_str(self, typed_columns: ColumnTypeList, id: str) -> str:
