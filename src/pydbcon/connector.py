@@ -478,7 +478,6 @@ class DBConnector:
         try:
             cursor = self._con.cursor()
             cursor.fast_executemany = True
-            self.logger(iterable_values)
             r = cursor.executemany(query_string, iterable_values)
 
             if not is_first:
@@ -518,15 +517,15 @@ class DBConnector:
 
         number_of_columns = len(self.df.columns)
 
-        columns = ','.join(self.df.columns)
+        columns = f"[{'],['.join(self.df.columns)}]"
         question_marks = ('?,' * number_of_columns)[:-1]
 
         if len(insert_df) > 0:
             insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
-            self.executemany(tuple(v.values for _, v in insert_df.iterrows()), query_string=insertion_query)
+            self.executemany(tuple(tuple(v.values) for _, v in insert_df.iterrows()), query_string=insertion_query)
         if len(update_df) > 0:
-            update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in columns])} where {self.id_column}=?"
-            self.executemany(tuple(v.values for _, v in update_df.iterrows()) + (self.df[self.id_column],), query_string=update_query)
+            update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in self.df.columns])} where [{self.id_column}]=?"
+            self.executemany(tuple(tuple(v.values) + (v[self.id_column],) for _, v in self.df.iterrows()), query_string=update_query)
 
         # add newly appended dicts to cache
         self.id_cache |= set(self.df[self.id_column])
