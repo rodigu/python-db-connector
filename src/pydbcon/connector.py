@@ -469,10 +469,10 @@ class DBConnector:
         return df[id_keys[0]].str.cat(df[id_keys[1:]].astype(str), sep=separator)
 
     def executemany(self, iterable_values, query_string: str, tries=10, current=0, is_first=True):
-        _tabs = '\t' * current
+        _tabs = ' ' * current
 
         if tries==0:
-            self.vp(f"{_tabs}---failed to execute")
+            self.vp(f"{_tabs}---failed to execute {query_string} with {iterable_values}")
             return
 
         try:
