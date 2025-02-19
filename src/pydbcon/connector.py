@@ -478,7 +478,8 @@ class DBConnector:
         try:
             cursor = self._con.cursor()
             cursor.fast_executemany = True
-            r = cursor.executemany(iterable_values, query_string=query_string)
+            self.logger(iterable_values)
+            r = cursor.executemany(query_string, iterable_values)
 
             if not is_first:
                 self.vp(f"{_tabs}---execute successful")
@@ -522,7 +523,7 @@ class DBConnector:
 
         if len(insert_df) > 0:
             insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
-            self.executemany((v.values for _, v in insert_df.iterrows()), query_string=insertion_query)
+            self.executemany(tuple(v.values for _, v in insert_df.iterrows()), query_string=insertion_query)
         if len(update_df) > 0:
             update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in columns])} where {self.id_column}=?"
             self.executemany(tuple(v.values for _, v in update_df.iterrows()) + (self.df[self.id_column],), query_string=update_query)
