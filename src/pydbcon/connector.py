@@ -504,7 +504,7 @@ class DBConnector:
 
         # convert first row into type_list
         pd_types = self.df.dtypes.to_dict()
-        type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items()]
+        type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items() ]
 
         for typed_col in type_list:
             if typed_col.type=='datetime':
@@ -529,10 +529,36 @@ class DBConnector:
 
         if len(insert_df) > 0:
             insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
-            self.executemany(tuple(tuple(v.values) for _, v in insert_df.iterrows()), query_string=insertion_query)
+            self.executemany(
+                tuple(
+                    tuple(
+                        self.parse_value(
+                            TypedColumn(
+                                column=k,
+                                value=v,
+                                typetype=self.type_mapper.map(k, str(pd_types[k]))
+                            )
+                        )[1] for k, v in row.items()
+                    ) for _, row in self.df.iterrows()
+                ),
+                query_string=insertion_query
+            )
         if len(update_df) > 0:
             update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in self.df.columns])} where [{self.id_column}]=?"
-            self.executemany(tuple(tuple(v.values) + (v[self.id_column],) for _, v in self.df.iterrows()), query_string=update_query)
+            self.executemany(
+                tuple(
+                    tuple(
+                        self.parse_value(
+                            TypedColumn(
+                                column=k,
+                                value=v,
+                                typetype=self.type_mapper.map(k, str(pd_types[k]))
+                            )
+                        )[1] for k, v in row.items()
+                    ) + (row[self.id_column],) for _, row in self.df.iterrows()
+                ),
+                query_string=update_query
+            )
 
         # add newly appended dicts to cache
         self.id_cache |= set(self.df[self.id_column])
