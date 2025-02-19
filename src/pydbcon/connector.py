@@ -468,7 +468,7 @@ class DBConnector:
     def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator: str) -> pd.Series:
         return df[id_keys[0]].str.cat(df[id_keys[1:]].astype(str), sep=separator)
 
-    def executemany(self, iterable_values, number_of_columns: int, columns: str, tries=10, current=0, is_first=True):
+    def executemany(self, iterable_values, query_string: str, tries=10, current=0, is_first=True):
         _tabs = '\t' * current
 
         if tries==0:
@@ -478,8 +478,7 @@ class DBConnector:
         try:
             cursor = self._con.cursor()
             cursor.fast_executemany = True
-            question_marks = ('?,' * number_of_columns)[:-1]
-            r = cursor.executemany(f"insert into {self.table} ({columns}) values ({question_marks})", iterable_values)
+            r = cursor.executemany(query_string, iterable_values)
 
             if not is_first:
                 self.vp(f"{_tabs}---execute successful")
@@ -488,7 +487,7 @@ class DBConnector:
             self.vp(f"{_tabs}---could not execute: {pe}")
             try:
                 self.vp(f"{_tabs}---attempt {current} ({tries} left)")
-                return self.executemany(iterable_values, number_of_columns=number_of_columns, columns=columns, tries=tries - 1, is_first=False, current=current + 1)
+                return self.executemany(iterable_values, query_string=query_string, tries=tries - 1, is_first=False, current=current + 1)
             except:
                 return
 
@@ -517,8 +516,15 @@ class DBConnector:
         self.add_columns(type_list)
 
         number_of_columns = len(self.df.columns)
-        self.executemany((v.values for _, v in update_df.iterrows()), number_of_columns=number_of_columns, columns=','.join(self.df.columns))
-        self.executemany((v.values for _, v in append_df.iterrows()), number_of_columns=number_of_columns, columns=','.join(self.df.columns))
+
+        columns = ','.join(self.df.columns)
+        question_marks = ('?,' * number_of_columns)[:-1]
+
+        insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
+        self.executemany((v.values for _, v in update_df.iterrows()), query_string=insertion_query)
+
+        update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in columns])} where {self.id_column}=?"
+        self.executemany(tuple(v.values for _, v in append_df.iterrows()) + (self.df[self.id_column],), query_string=update_query)
 
         # add newly appended dicts to cache
         self.id_cache |= set(append_df[self.id_column])
