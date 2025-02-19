@@ -498,7 +498,6 @@ class DBConnector:
         """
 
         if self.do_composite_id:
-            self.id_column = self.composite_kwargs['id_name']
             self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'], separator=self.composite_kwargs['separator'])
 
         # update dicts that are already in cache
