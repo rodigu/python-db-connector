@@ -502,7 +502,7 @@ class DBConnector:
         # update dicts that are already in cache
         update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
         # append dicts that aren't
-        append_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
+        insert_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
 
         # convert first row into type_list
         pd_types = self.df.dtypes.to_dict()
@@ -520,11 +520,12 @@ class DBConnector:
         columns = ','.join(self.df.columns)
         question_marks = ('?,' * number_of_columns)[:-1]
 
-        insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
-        self.executemany((v.values for _, v in update_df.iterrows()), query_string=insertion_query)
-
-        update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in columns])} where {self.id_column}=?"
-        self.executemany(tuple(v.values for _, v in append_df.iterrows()) + (self.df[self.id_column],), query_string=update_query)
+        if len(insert_df) > 0:
+            insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
+            self.executemany((v.values for _, v in insert_df.iterrows()), query_string=insertion_query)
+        if len(update_df) > 0:
+            update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in columns])} where {self.id_column}=?"
+            self.executemany(tuple(v.values for _, v in update_df.iterrows()) + (self.df[self.id_column],), query_string=update_query)
 
         # add newly appended dicts to cache
         self.id_cache |= set(self.df[self.id_column])
