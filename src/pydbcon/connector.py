@@ -467,7 +467,7 @@ class DBConnector:
         self.df = pd.concat([ self.df, pd.json_normalize(dictionary) ], ignore_index=True)
 
     @staticmethod
-    def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator: str) -> pd.Series:
+    def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator='+') -> pd.Series:
         return df[id_keys[0]].str.cat(df[id_keys[1:]].astype(str), sep=separator)
 
     def executemany(self, iterable_values, query_string: str, tries=10, current=0, is_first=True):
@@ -498,7 +498,7 @@ class DBConnector:
         """
 
         if self.do_composite_id:
-            self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'], separator=self.composite_kwargs['separator'])
+            self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'])
 
         # update dicts that are already in cache
         update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
