@@ -478,7 +478,7 @@ class DBConnector:
         try:
             cursor = self._con.cursor()
             cursor.fast_executemany = True
-            r = cursor.executemany(query_string, iterable_values)
+            r = cursor.executemany(iterable_values, query_string=query_string)
 
             if not is_first:
                 self.vp(f"{_tabs}---execute successful")
