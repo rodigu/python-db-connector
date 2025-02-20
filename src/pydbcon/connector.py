@@ -483,6 +483,7 @@ class DBConnector:
             r = cursor.executemany(query_string, iterable_values)
 
             cursor.commit()
+            self.logger('COMMITED')
 
             if not is_first:
                 self.vp(f"{_tabs}---execute successful")
