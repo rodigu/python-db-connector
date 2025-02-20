@@ -465,6 +465,12 @@ class DBConnector:
         """
         if self.df is None:
             self.df = pd.json_normalize(dictionary)
+            # create table if it doesn't exist
+            if not self.has_table():
+                # convert first row into type_list
+                pd_types = self.df.dtypes.to_dict()
+                type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items() ]
+                self.create_table(type_list)
             return
         self.df = pd.concat([ self.df, pd.json_normalize(dictionary) ], ignore_index=True)
 
@@ -516,10 +522,6 @@ class DBConnector:
         update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
         # append dicts that aren't
         insert_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
-
-        # create table if it doesn't exist
-        if not self.has_table():
-            self.create_table(type_list)
 
         # create columns that don't exist
         self.add_columns(type_list)
