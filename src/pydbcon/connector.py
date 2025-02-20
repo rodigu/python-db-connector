@@ -189,7 +189,7 @@ class DBConnector:
         _tabs = '\t' * current
 
         if tries==0:
-            self.vp(f"{_tabs}---failed to execute {sql_query}")
+            self.logger(f"{_tabs}---failed to execute {sql_query}")
             return
 
         try:
@@ -474,7 +474,7 @@ class DBConnector:
         _tabs = ' ' * current
 
         if tries==0:
-            self.vp(f"{_tabs}---failed to execute {query_string} with {iterable_values}")
+            self.logger(f"{_tabs}---failed to execute {query_string} with {iterable_values}")
             return
 
         try:
@@ -483,7 +483,6 @@ class DBConnector:
             r = cursor.executemany(query_string, iterable_values)
 
             cursor.commit()
-            self.logger('COMMITED')
 
             if not is_first:
                 self.vp(f"{_tabs}---execute successful")
