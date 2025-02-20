@@ -527,19 +527,21 @@ class DBConnector:
         columns = f"[{'],['.join(self.df.columns)}]"
         question_marks = ('?,' * number_of_columns)[:-1]
 
+        parser = lambda row: tuple(
+            self.parse_value(
+                TypedColumn(
+                    column=k,
+                    value=v,
+                    type=self.type_mapper.map(k, str(pd_types[k]))
+                )
+            )[1] for k, v in row.items()
+        )
+
         if len(insert_df) > 0:
             insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
             self.executemany(
                 tuple(
-                    tuple(
-                        self.parse_value(
-                            TypedColumn(
-                                column=k,
-                                value=v,
-                                typetype=self.type_mapper.map(k, str(pd_types[k]))
-                            )
-                        )[1] for k, v in row.items()
-                    ) for _, row in self.df.iterrows()
+                    parser(row) for _, row in self.df.iterrows()
                 ),
                 query_string=insertion_query
             )
@@ -547,15 +549,7 @@ class DBConnector:
             update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in self.df.columns])} where [{self.id_column}]=?"
             self.executemany(
                 tuple(
-                    tuple(
-                        self.parse_value(
-                            TypedColumn(
-                                column=k,
-                                value=v,
-                                typetype=self.type_mapper.map(k, str(pd_types[k]))
-                            )
-                        )[1] for k, v in row.items()
-                    ) + (row[self.id_column],) for _, row in self.df.iterrows()
+                    parser(row) + (row[self.id_column],) for _, row in self.df.iterrows()
                 ),
                 query_string=update_query
             )
