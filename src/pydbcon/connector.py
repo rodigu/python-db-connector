@@ -314,7 +314,7 @@ class DBConnector:
             return (data.column, str(int(data.value)))
         if 'int' in data.type:
             return (data.column, int(data.value))
-        return (data.column, f"N'{str(data.value).replace("'", '"')}'")
+        return (data.column, data.value)
 
     def sql_update_str(self, typed_columns: ColumnTypeList, id: str) -> str:
         """Updates row with `id` using the given `typed_columns`
