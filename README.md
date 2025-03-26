@@ -1,6 +1,8 @@
 # python-db-connector
 
-Simplified appending of dictionary-like values to a SQL database
+Simplified appending of dictionary-like values to a SQL database.
+
+PyDBCon is in essence a wrapper for the [`pyodbc`](https://pypi.org/project/pyodbc/) library.
 
 ## contents
 
@@ -11,6 +13,8 @@ Simplified appending of dictionary-like values to a SQL database
   - [type mapper](#type-mapper)
 
 ## installation
+
+PyDBCon can be installed through pip:
 
 ```bash
 python -m pip install git+https://github.com/rodigu/python-db-connector -U
@@ -39,7 +43,7 @@ dbcon.insert_dict(dict_like)
 
 The `DBConnector` class should also be given an instance of the `TypeMapper` class or a dictionary that fits the `TypeMapper` constructor signature.
 
-Giving a TypeMapper instance to the `DBConnector` constructor:
+Example of a `TypeMapper` instance given to the `DBConnector` constructor:
 
 ```py
 from pydbcon.connector import DBConnector, TypeMapper
