@@ -1,0 +1,2 @@
+project = 'PyDBCon'
+author = 'rodigu'
