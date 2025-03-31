@@ -535,13 +535,13 @@ class DBConnector:
         if len(insert_df) > 0:
             insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
             self.executemany(
-                tuple(tuple(row.values) for _, row in insert_df.iterrows()),
+                tuple(tuple(row.values if type(row.values)!=list else str(row.values)) for _, row in insert_df.iterrows()),
                 query_string=insertion_query
             )
         if len(update_df) > 0:
             update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in self.df.columns])} where [{self.id_column}]=?"
             self.executemany(
-                tuple(tuple(row.values) + (row[self.id_column],) for _, row in update_df.iterrows()),
+                tuple(tuple(row.values if type(row.values)!=list else str(row.values)) + (row[self.id_column],) for _, row in update_df.iterrows()),
                 query_string=update_query
             )
 
