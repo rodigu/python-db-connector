@@ -517,7 +517,7 @@ class DBConnector:
 
         for typed_col in type_list:
             if typed_col.type=='datetime':
-                self.df[typed_col.column] = self.df[typed_col.column].astype('datetime64[s]').dt.strftime('%Y-%m-%d %H:%M:%S')
+                self.df[typed_col.column] = pd.to_datetime(db.df[typed_col.column]).dt.strftime('%Y-%m-%d %H:%M:%S')
 
         # update dicts that are already in cache
         update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
