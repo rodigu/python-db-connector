@@ -509,8 +509,6 @@ class DBConnector:
         """Executes batch cached in dataframe, then clears cache
         """
 
-        self.df.replace({ nan: None }, inplace=True)
-
         if self.do_composite_id:
             self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'])
 
@@ -521,6 +519,8 @@ class DBConnector:
         for typed_col in type_list:
             if typed_col.type=='datetime':
                 self.df[typed_col.column] = pd.to_datetime(self.df[typed_col.column]).dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        self.df.replace({ nan: None }, inplace=True)
 
         # update dicts that are already in cache
         update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
