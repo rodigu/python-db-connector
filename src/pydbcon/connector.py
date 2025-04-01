@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy import nan
 import pyodbc as db
 from icecream import ic
 from dataclasses import dataclass, field
@@ -507,6 +508,8 @@ class DBConnector:
     def execute_batch(self):
         """Executes batch cached in dataframe, then clears cache
         """
+
+        db.df.replace({ nan: None }, inplace=True)
 
         if self.do_composite_id:
             self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'])
