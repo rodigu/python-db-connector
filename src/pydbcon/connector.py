@@ -509,7 +509,7 @@ class DBConnector:
         """Executes batch cached in dataframe, then clears cache
         """
 
-        db.df.replace({ nan: None }, inplace=True)
+        self.df.replace({ nan: None }, inplace=True)
 
         if self.do_composite_id:
             self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'])
@@ -537,14 +537,19 @@ class DBConnector:
 
         if len(insert_df) > 0:
             insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
+            insertion_tuple = tuple(tuple((value if type(value)!=list else str(value)) for value in row.values) for _, row in insert_df.iterrows())
+
             self.executemany(
-                tuple(tuple(row.values if type(row.values)!=list else str(row.values)) for _, row in insert_df.iterrows()),
+                insertion_tuple,
                 query_string=insertion_query
             )
+
         if len(update_df) > 0:
             update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in self.df.columns])} where [{self.id_column}]=?"
+            update_tuple = tuple(tuple((value if type(value)!=list else str(value)) for value in row.values) + (row[self.id_column],) for _, row in update_df.iterrows())
+
             self.executemany(
-                tuple(tuple(row.values if type(row.values)!=list else str(row.values)) + (row[self.id_column],) for _, row in update_df.iterrows()),
+                update_tuple,
                 query_string=update_query
             )
 
