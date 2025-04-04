@@ -505,7 +505,7 @@ class DBConnector:
             except:
                 return
 
-    def execute_batch(self):
+    def execute_batch(self, do_create_table=False):
         """Executes batch cached in dataframe, then clears cache
         """
 
@@ -519,6 +519,9 @@ class DBConnector:
         for typed_col in type_list:
             if typed_col.type=='datetime':
                 self.df[typed_col.column] = pd.to_datetime(self.df[typed_col.column]).dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        if do_create_table:
+            self.create_table(type_list)
 
         self.df.replace({ nan: None }, inplace=True)
 
