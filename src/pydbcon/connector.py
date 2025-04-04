@@ -478,7 +478,7 @@ class DBConnector:
 
     @staticmethod
     def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator='+') -> pd.Series:
-        return df[id_keys[0]].str.cat(df[id_keys[1:]].astype(str), sep=separator)
+        return df[id_keys[0]].astype(str).str.cat(df[id_keys[1:]].astype(str), sep=separator)
 
     def executemany(self, iterable_values, query_string: str, tries=10, current=0, is_first=True):
         _tabs = ' ' * current
