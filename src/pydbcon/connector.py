@@ -520,7 +520,7 @@ class DBConnector:
             if typed_col.type=='datetime':
                 self.df[typed_col.column] = pd.to_datetime(self.df[typed_col.column]).dt.strftime('%Y-%m-%d %H:%M:%S')
 
-        if do_create_table:
+        if do_create_table and not self.has_table():
             self.create_table(type_list)
 
         self.df.replace({ nan: None }, inplace=True)
