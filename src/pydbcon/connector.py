@@ -505,6 +505,14 @@ class DBConnector:
             except:
                 return
 
+    def filter_modified_lines(df: pd.DataFrame) -> pd.DataFrame:
+        # sql select lines with same id
+
+        # check which rows have changed
+
+        # return df with mask for modified rows
+        pass
+
     def execute_batch(self, do_create_table=False):
         """Executes batch cached in dataframe, then clears cache
         """
@@ -526,7 +534,7 @@ class DBConnector:
         self.df.replace({ nan: None }, inplace=True)
 
         # update dicts that are already in cache
-        update_df = self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
+        update_df = self.filter_modified_lines(self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))])
         # append dicts that aren't
         insert_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
 
