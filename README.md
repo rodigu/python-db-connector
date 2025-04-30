@@ -1,26 +1,29 @@
-# python-db-connector
+# PyDBCon (the Python DataBase Connector)
 
-Simplified appending of dictionary-like values to a SQL database.
+simplified appending of dictionary-like values to a SQL database.
 
 PyDBCon is in essence a wrapper for the [`pyodbc`](https://pypi.org/project/pyodbc/) library.
 
 ## contents
 
-- [python-db-connector](#python-db-connector)
+- [PyDBCon (the Python DataBase Connector)](#pydbcon-the-python-database-connector)
   - [contents](#contents)
   - [installation](#installation)
   - [basic usage](#basic-usage)
   - [type mapper](#type-mapper)
+  - [batch inserts](#batch-inserts)
 
 ## installation
 
-PyDBCon can be installed through pip:
+PyDBCon is hosted as a package on this repository, and can be installed through pip:
 
 ```bash
 python -m pip install git+https://github.com/rodigu/python-db-connector -U
 ```
 
 ## basic usage
+
+to get started, all you need is a SQL [database connection string](https://learn.microsoft.com/en-us/sql/connect/python/pyodbc/step-3-proof-of-concept-connecting-to-sql-using-pyodbc?view=sql-server-ver16), a table, a dictionary-like you want to append to the table, and a dictionary specifying the type mapping:
 
 ```py
 from pydbcon.connector import DBConnector
@@ -34,7 +37,7 @@ PWD=PASSWORD;
 Trusted_Connection=no;
 """
 
-dbcon = DBConnector(connection_string=connection_string, table='TABLE_NAME')
+dbcon = DBConnector(connection_string=connection_string, table='TABLE_NAME', type_mapper=type_mapper)
 
 dbcon.insert_dict(dict_like)
 ```
@@ -85,3 +88,7 @@ The keys for a type mapper are:
 - `prefix`: will map from column name that has the given prefix (`dict` key) to SQL type (`dict` value), defaults to an empty dictionary
 - `suffix`: will map from column name that has the given suffix (`dict` key) to SQL type (`dict` value), defaults to an empty dictionary
 - `typed`: will map from a pandas type (`dict` key) to a SQL type (`dict` value), defaults to an empty dictionary
+
+## batch inserts
+
+as of `v0.7.x`, pydbcon now supports batch inserts of dictionaries with [`append_to_batch`](./src/pydbcon/connector.py#L461) and [`execute_batch`](./src/pydbcon/connector.py#L516)
