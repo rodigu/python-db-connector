@@ -7,14 +7,17 @@ from dataclasses import dataclass, field
 
 TableColumns = set[str]
 
+
 @dataclass
 class TypedColumn:
     column: str
     type: str
     value: any = None
 
+
 # Dictionary with column name-typed column pairs
 ColumnTypeList = list[TypedColumn]
+
 
 @dataclass
 class TypeMapper:
@@ -48,25 +51,37 @@ class TypeMapper:
     >>> tm.map(column_name='any_name', column_type='bool')
     'bit'
     """
+
     direct: dict[str, str] = field(default_factory=dict)
     prefix: dict[str, str] = field(default_factory=dict)
     suffix: dict[str, str] = field(default_factory=dict)
     typed: dict[str, str] = field(default_factory=dict)
 
-    def map(self, column_name: str, column_type: str=None) -> str:
+    def map(self, column_name: str, column_type: str = None) -> str:
         if column_name in self.direct:
             return self.direct[column_name]
         for p in self.prefix:
-            if column_name[:len(p)] == p:
+            if column_name[: len(p)] == p:
                 return self.prefix[p]
         for s in self.suffix:
-            if column_name[-len(s):] == s:
+            if column_name[-len(s) :] == s:
                 return self.suffix[s]
         if column_type in self.typed:
             return self.typed[column_type]
 
+
 class DBConnector:
-    def __init__(self, connection_string: str, table: str, type_mapper: TypeMapper|dict=TypeMapper(), verbose=False, id_column='id', logger=ic, composite_kwargs: dict=None, do_fast_executemany=False):
+    def __init__(
+        self,
+        connection_string: str,
+        table: str,
+        type_mapper: TypeMapper | dict = TypeMapper(),
+        verbose=False,
+        id_column="id",
+        logger=ic,
+        composite_kwargs: dict = None,
+        do_fast_executemany=False,
+    ):
         """Creates connection to database
 
         Sample `connection_string`:
@@ -102,22 +117,26 @@ class DBConnector:
         self.do_composite_id = composite_kwargs is not None
         self.composite_kwargs: dict = composite_kwargs
         if self.do_composite_id:
-            self.id_column = self.composite_kwargs['id_name']
+            self.id_column = self.composite_kwargs["id_name"]
         self.do_fast_executemany = do_fast_executemany
 
     def get_table_columns(self) -> TableColumns:
-        return { cn[0] for cn in self.execute(f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'").fetchall() }
+        return {
+            cn[0]
+            for cn in self.execute(
+                f"select column_name from information_schema.columns where TABLE_NAME='{self.table}'"
+            ).fetchall()
+        }
 
     def cache_table_columns(self):
-        """Caches table columns from SQL database
-        """
+        """Caches table columns from SQL database"""
         self.table_columns = self.get_table_columns()
 
     def has_column(self, column: str) -> bool:
         return column in self.table_columns
 
     def add_column(self, column: str, column_type: str):
-        self.execute(f'alter table [{self.table}] add [{column}] {column_type} NULL')
+        self.execute(f"alter table [{self.table}] add [{column}] {column_type} NULL")
         self.commit()
 
     def vp(self, content: str):
@@ -131,7 +150,14 @@ class DBConnector:
             self.logger(content)
 
     @staticmethod
-    def create_connection_string(driver: str, server_ip: str, database: str, user_id: str, password: str, trusted=False) -> str:
+    def create_connection_string(
+        driver: str,
+        server_ip: str,
+        database: str,
+        user_id: str,
+        password: str,
+        trusted=False,
+    ) -> str:
         """Creates connection string using the given auth values, see the [`pyodbc`](https://github.com/mkleehammer/pyodbc/wiki/Getting-started) docs for more info.
 
         :param str driver: driver name, e.g. {SQL Server}
@@ -153,10 +179,14 @@ class DBConnector:
         :param str table: table name
         :return bool: True if table exists in database, false otherwise
         """
-        return bool(self._con.cursor().tables(table=self.table, tableType='TABLE').fetchone())
+        return bool(
+            self._con.cursor().tables(table=self.table, tableType="TABLE").fetchone()
+        )
 
     def create_table(self, type_list: ColumnTypeList):
-        self.execute(sql_query=f'create table {self.table}({', '.join((f'[{t.column}] {t.type}' for t in type_list))})')
+        self.execute(
+            sql_query=f"create table {self.table}({', '.join((f'[{t.column}] {t.type}' for t in type_list))})"
+        )
         self.cache_table_columns()
         self.commit()
 
@@ -188,9 +218,9 @@ class DBConnector:
         :param int tries: number of times to try executing the query before giving up, defaults to 10
         :param bool is_first: used to track number of tries, defaults to True
         """
-        _tabs = '\t' * current
+        _tabs = "\t" * current
 
-        if tries==0:
+        if tries == 0:
             self.logger(f"{_tabs}---failed to execute {sql_query}")
             return
 
@@ -218,10 +248,18 @@ class DBConnector:
 
         skip_none = lambda v: True if do_keep_nulls else (v is not None)
 
-        return [ TypedColumn(column=key, value=val, type=self.type_mapper.map(key, str(pd_types[key]))) for key, val in df.iloc[0].to_dict().items() if skip_none(val) ]
+        return [
+            TypedColumn(
+                column=key,
+                value=val,
+                type=self.type_mapper.map(key, str(pd_types[key])),
+            )
+            for key, val in df.iloc[0].to_dict().items()
+            if skip_none(val)
+        ]
 
     @staticmethod
-    def flatten_dict(d: dict, key: str|list[str] = []) -> dict:
+    def flatten_dict(d: dict, key: str | list[str] = []) -> dict:
         """Recusively flattens a dict.
         Lists with dictionaries are turned into dicts with keys using `key`.
 
@@ -238,10 +276,10 @@ class DBConnector:
         >>> DBConnector.flatten_dict({'a': 1, 'b': [{'k': 2, 'val': 0}, {'k': 1, 'val': 2}]}, key='k')
         {'a': 1, 'b': {2: {'val': 0}, 1: {'val': 2}}}
         """
-        return { k: DBConnector.flatten_dict_list(v, key) for k, v in d.items() }
+        return {k: DBConnector.flatten_dict_list(v, key) for k, v in d.items()}
 
     @staticmethod
-    def flatten_dict_list(dlist: list[dict], key: str|list[str]):
+    def flatten_dict_list(dlist: list[dict], key: str | list[str]):
         """Flattens list of dictionaries recursively
 
         Expects list of dicts to be uniform in terms of keys.
@@ -255,25 +293,33 @@ class DBConnector:
         >>> DBConnector.flatten_dict_list([{'k': 2, 'val': 0}, {'k': 1, 'val': 2}], key='k')
         {2: {'val': 0}, 1: {'val': 2}}
         """
-        wrong_type = lambda x: type(x)!=list and type(x)!=dict
-        if wrong_type(dlist) or (type(dlist)==list and len(dlist) > 0 and wrong_type(dlist[0])):
+        wrong_type = lambda x: type(x) != list and type(x) != dict
+        if wrong_type(dlist) or (
+            type(dlist) == list and len(dlist) > 0 and wrong_type(dlist[0])
+        ):
             return dlist
 
-        if type(dlist)==dict:
+        if type(dlist) == dict:
             return DBConnector.flatten_dict(dlist, key)
 
         def choose_key(d: dict) -> str:
-            if type(key)==str: return key
+            if type(key) == str:
+                return key
             for k in key:
-                if k in d: return k
+                if k in d:
+                    return k
             return None
 
-        no_keys_in_dict = (choose_key(dlist[0]) not in dlist[0] and choose_key(dlist[0]) == None)
+        no_keys_in_dict = (
+            choose_key(dlist[0]) not in dlist[0] and choose_key(dlist[0]) == None
+        )
 
         if no_keys_in_dict:
             return str(dlist)
 
-        flattened = { d[choose_key(d)]: DBConnector.flatten_dict_list(d, key) for d in dlist }
+        flattened = {
+            d[choose_key(d)]: DBConnector.flatten_dict_list(d, key) for d in dlist
+        }
         for v in flattened.values():
             v.pop(choose_key(v))
         return flattened
@@ -308,25 +354,27 @@ class DBConnector:
 
         """
 
-        if data.type == 'datetime':
+        if data.type == "datetime":
             return (data.column, data.value)
-        if (data.value is None) or (type(data.value)==str and len(data.value)==0):
-            return (data.column, 'NULL')
-        if data.type == 'bit':
+        if (data.value is None) or (type(data.value) == str and len(data.value) == 0):
+            return (data.column, "NULL")
+        if data.type == "bit":
             return (data.column, str(int(data.value)))
-        if 'int' in data.type:
+        if "int" in data.type:
             return (data.column, int(data.value))
         return (data.column, data.value)
 
     def sql_update_str(self, typed_columns: ColumnTypeList, id: str) -> str:
         """Updates row with `id` using the given `typed_columns`
 
-        :param ColumnTypeList typed_columns: 
+        :param ColumnTypeList typed_columns:
         :param str id: row ID
         :return str: SQL query string
         """
-        parsed_values: dict[str, str] = dict(map(DBConnector.parse_value, typed_columns))
-        return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where {self.id_column}={id if type(id)==int else f"'{id}'"}"
+        parsed_values: dict[str, str] = dict(
+            map(DBConnector.parse_value, typed_columns)
+        )
+        return f"update {self.table} set {', '.join([f'[{c}]={v}' for c, v in parsed_values.items()])} where {self.id_column}={id if type(id) == int else f"'{id}'"}"
 
     def sql_columns_and_values(self, typed_columns: ColumnTypeList) -> tuple[str, str]:
         """Generates SQL strings for columns and values from a given `ColumnTypeList`
@@ -334,7 +382,9 @@ class DBConnector:
         :param ColumnTypeList typed_columns:
         :return tuple[str, str]: tuple with columns and values strings (respectively)
         """
-        return f"[{'], ['.join([t.column for t in typed_columns])}]", ', '.join(dict(map(DBConnector.parse_value, typed_columns)).values())
+        return f"[{'], ['.join([t.column for t in typed_columns])}]", ", ".join(
+            dict(map(DBConnector.parse_value, typed_columns)).values()
+        )
 
     def sql_insertion_str(self, typed_columns: ColumnTypeList) -> str:
         """Creates valid SQL string to insert a row using the given typed columns.
@@ -343,7 +393,7 @@ class DBConnector:
         :return str: SQL insert string
         """
         columns, values = self.sql_columns_and_values(typed_columns)
-        return f'insert into {self.table} ({columns}) values ({values})'
+        return f"insert into {self.table} ({columns}) values ({values})"
 
     def select(self, selection_str: str):
         """Yields row-by-row results for the given SQL selection string
@@ -352,11 +402,11 @@ class DBConnector:
         :yield tuple[any]: list of values for the current row
         """
         self._crsr.execute(selection_str)
-        while (row:=self._crsr.fetchone()) is not None:
+        while (row := self._crsr.fetchone()) is not None:
             yield row
 
     @staticmethod
-    def connection_from_file(json_fname: str, table: str, **args) -> 'DBConnector':
+    def connection_from_file(json_fname: str, table: str, **args) -> "DBConnector":
         """
         JSON file should have keys such that it fits into the function signature of `DBConnector.create_connection_string`:
 
@@ -377,6 +427,7 @@ class DBConnector:
         :return DBConnector: DBConnector instance created using information from given JSON file
         """
         import json
+
         with open(json_fname) as f:
             data = json.load(f)
         connection_string = DBConnector.create_connection_string(**data)
@@ -389,11 +440,19 @@ class DBConnector:
         :return set: set with IDs
         """
         if recache or self.id_cache is None:
-            ids = self.execute(f'select [{self.id_column}] from [{self.table}]')
+            ids = self.execute(f"select [{self.id_column}] from [{self.table}]")
             self.id_cache = set(i[0] for i in ([] if ids is None else ids.fetchall()))
         return self.id_cache
 
-    def insert_dict(self, obj_dict: dict, recache=True, force=False, do_create_columns=True, do_composite_id=False, composite_id_kwargs={}) -> bool:
+    def insert_dict(
+        self,
+        obj_dict: dict,
+        recache=True,
+        force=False,
+        do_create_columns=True,
+        do_composite_id=False,
+        composite_id_kwargs={},
+    ) -> bool:
         """Inserts generic dictionary to table
 
         :param dict obj_dict: dictionary to be appended
@@ -407,9 +466,11 @@ class DBConnector:
         type_list = self.typed_columns(obj_dict)
 
         if do_composite_id:
-            self.id_column = composite_id_kwargs['id_name']
-            type_list += [ DBConnector.composite_id_type_column(type_list, ** composite_id_kwargs) ]
-        id = [ t for t in type_list if t.column==self.id_column ][0].value
+            self.id_column = composite_id_kwargs["id_name"]
+            type_list += [
+                DBConnector.composite_id_type_column(type_list, **composite_id_kwargs)
+            ]
+        id = [t for t in type_list if t.column == self.id_column][0].value
 
         if not self.has_table():
             self.create_table(type_list)
@@ -418,7 +479,7 @@ class DBConnector:
             if not force:
                 return False
 
-        self.vp(f'> {id}')
+        self.vp(f"> {id}")
 
         if do_create_columns:
             self.add_columns(type_list)
@@ -426,7 +487,7 @@ class DBConnector:
         sql_query = self.sql_insertion_str(type_list)
 
         if id in self.get_table_ids(recache):
-            self.vp(f'\t...updating')
+            self.vp(f"\t...updating")
             sql_query = self.sql_update_str(type_list, id)
 
         self.id_cache.add(id)
@@ -436,7 +497,9 @@ class DBConnector:
         return True
 
     @staticmethod
-    def composite_id_dict(original_dict: dict, id_name: str, id_keys: list, separator='+') -> dict:
+    def composite_id_dict(
+        original_dict: dict, id_name: str, id_keys: list, separator="+"
+    ) -> dict:
         """Takes an `original_dict` and returns a dictionary with the same keys, and an additional key-value pair.
 
         The aditional key-value pair has a `key=id_name`
@@ -448,14 +511,21 @@ class DBConnector:
         :param str separator: separator used in concatenation of values, defaults to '+'
         :return dict: new dictionary (shallow copy of `original_dict`)
         """
-        return dict(**{ id_name: separator.join((str(original_dict[k]) for k in id_keys)) }, **original_dict)
+        return dict(
+            **{id_name: separator.join((str(original_dict[k]) for k in id_keys))},
+            **original_dict,
+        )
 
     @staticmethod
-    def composite_id_type_column(type_list: ColumnTypeList, id_name: str, id_keys: set, separator='+') -> TypedColumn:
+    def composite_id_type_column(
+        type_list: ColumnTypeList, id_name: str, id_keys: set, separator="+"
+    ) -> TypedColumn:
         return TypedColumn(
             column=id_name,
-            value=separator.join(str(x.value) for x in type_list if x.column in id_keys),
-            type="varchar(max)"
+            value=separator.join(
+                str(x.value) for x in type_list if x.column in id_keys
+            ),
+            type="varchar(max)",
         )
 
     def append_to_batch(self, dictionary: dict):
@@ -471,20 +541,35 @@ class DBConnector:
             if not self.has_table():
                 # convert first row into type_list
                 pd_types = self.df.dtypes.to_dict()
-                type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items() ]
+                type_list = [
+                    TypedColumn(
+                        column=key, type=self.type_mapper.map(key, str(pd_types[key]))
+                    )
+                    for key, _ in self.df.iloc[0].to_dict().items()
+                ]
                 self.create_table(type_list)
             return
-        self.df = pd.concat([ self.df, pd.json_normalize(dictionary) ], ignore_index=True)
+        self.df = pd.concat([self.df, pd.json_normalize(dictionary)], ignore_index=True)
 
     @staticmethod
-    def concatenated_id_column(df: pd.DataFrame, id_keys: list[str], separator='+') -> pd.Series:
-        return df[id_keys[0]].astype(str).str.cat(df[id_keys[1:]].astype(str), sep=separator)
+    def concatenated_id_column(
+        df: pd.DataFrame, id_keys: list[str], separator="+"
+    ) -> pd.Series:
+        return (
+            df[id_keys[0]]
+            .astype(str)
+            .str.cat(df[id_keys[1:]].astype(str), sep=separator)
+        )
 
-    def executemany(self, iterable_values, query_string: str, tries=10, current=0, is_first=True):
-        _tabs = ' ' * current
+    def executemany(
+        self, iterable_values, query_string: str, tries=10, current=0, is_first=True
+    ):
+        _tabs = " " * current
 
-        if tries==0:
-            self.logger(f"{_tabs}---failed to execute {query_string} with {iterable_values}")
+        if tries == 0:
+            self.logger(
+                f"{_tabs}---failed to execute {query_string} with {iterable_values}"
+            )
             return
 
         try:
@@ -501,11 +586,22 @@ class DBConnector:
             self.vp(f"{_tabs}---could not execute: {pe}")
             try:
                 self.vp(f"{_tabs}---attempt {current} ({tries} left)")
-                return self.executemany(iterable_values, query_string=query_string, tries=tries - 1, is_first=False, current=current + 1)
+                return self.executemany(
+                    iterable_values,
+                    query_string=query_string,
+                    tries=tries - 1,
+                    is_first=False,
+                    current=current + 1,
+                )
             except:
                 return
 
     def filter_modified_lines(df: pd.DataFrame) -> pd.DataFrame:
+        """Returns only the rows that presented no change
+
+        :param pd.DataFrame df: dataframe
+        :return pd.DataFrame: dataframe containing only the rows that changed
+        """
         # sql select lines with same id
 
         # check which rows have changed
@@ -514,29 +610,41 @@ class DBConnector:
         pass
 
     def execute_batch(self, do_create_table=False):
-        """Executes batch cached in dataframe, then clears cache
-        """
+        """Executes batch cached in dataframe, then clears cache"""
 
         if self.do_composite_id:
-            self.df[self.composite_kwargs['id_name']] = DBConnector.concatenated_id_column(self.df, id_keys=self.composite_kwargs['id_keys'])
+            self.df[self.composite_kwargs["id_name"]] = (
+                DBConnector.concatenated_id_column(
+                    self.df, id_keys=self.composite_kwargs["id_keys"]
+                )
+            )
 
         # convert first row into type_list
         pd_types = self.df.dtypes.to_dict()
-        type_list = [ TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key]))) for key, _ in self.df.iloc[0].to_dict().items() ]
+        type_list = [
+            TypedColumn(column=key, type=self.type_mapper.map(key, str(pd_types[key])))
+            for key, _ in self.df.iloc[0].to_dict().items()
+        ]
 
         for typed_col in type_list:
-            if typed_col.type=='datetime':
-                self.df[typed_col.column] = pd.to_datetime(self.df[typed_col.column]).dt.strftime('%Y-%m-%d %H:%M:%S')
+            if typed_col.type == "datetime":
+                self.df[typed_col.column] = pd.to_datetime(
+                    self.df[typed_col.column]
+                ).dt.strftime("%Y-%m-%d %H:%M:%S")
 
         if do_create_table and not self.has_table():
             self.create_table(type_list)
 
-        self.df.replace({ nan: None }, inplace=True)
+        self.df.replace({nan: None}, inplace=True)
 
         # update dicts that are already in cache
-        update_df = self.filter_modified_lines(self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))])
+        update_df = self.filter_modified_lines(
+            self.df[self.df[self.id_column].isin(self.get_table_ids(recache=False))]
+        )
         # append dicts that aren't
-        insert_df = self.df[~self.df[self.id_column].isin(self.get_table_ids(recache=False))]
+        insert_df = self.df[
+            ~self.df[self.id_column].isin(self.get_table_ids(recache=False))
+        ]
 
         # create columns that don't exist
         self.add_columns(type_list)
@@ -544,25 +652,34 @@ class DBConnector:
         number_of_columns = len(self.df.columns)
 
         columns = f"[{'],['.join(self.df.columns)}]"
-        question_marks = ('?,' * number_of_columns)[:-1]
+        question_marks = ("?," * number_of_columns)[:-1]
 
         if len(insert_df) > 0:
-            insertion_query = f"insert into {self.table} ({columns}) values ({question_marks})"
-            insertion_tuple = tuple(tuple((value if type(value)!=list else str(value)) for value in row.values) for _, row in insert_df.iterrows())
-
-            self.executemany(
-                insertion_tuple,
-                query_string=insertion_query
+            insertion_query = (
+                f"insert into {self.table} ({columns}) values ({question_marks})"
             )
+            insertion_tuple = tuple(
+                tuple(
+                    (value if type(value) != list else str(value))
+                    for value in row.values
+                )
+                for _, row in insert_df.iterrows()
+            )
+
+            self.executemany(insertion_tuple, query_string=insertion_query)
 
         if len(update_df) > 0:
             update_query = f"update {self.table} set {', '.join([f'[{c}]=?' for c in self.df.columns])} where [{self.id_column}]=?"
-            update_tuple = tuple(tuple((value if type(value)!=list else str(value)) for value in row.values) + (row[self.id_column],) for _, row in update_df.iterrows())
-
-            self.executemany(
-                update_tuple,
-                query_string=update_query
+            update_tuple = tuple(
+                tuple(
+                    (value if type(value) != list else str(value))
+                    for value in row.values
+                )
+                + (row[self.id_column],)
+                for _, row in update_df.iterrows()
             )
+
+            self.executemany(update_tuple, query_string=update_query)
 
         # add newly appended dicts to cache
         self.id_cache |= set(self.df[self.id_column])
@@ -572,4 +689,5 @@ class DBConnector:
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
